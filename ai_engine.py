@@ -17,7 +17,8 @@ def analyze_with_ai(symbol, timeframe, indicator_data):
         return "Error: Gemini API Key not found. Please set GOOGLE_API_KEY in .env or secrets."
 
     # List of models to try in order of preference
-    models_to_try = ["gemini-2.0-flash", "gemini-flash-latest"]
+    # gemini-1.5-flash is the stable production model with higher quota limits
+    models_to_try = ["gemini-1.5-flash", "gemini-1.5-pro"]
     
     client = genai.Client(api_key=api_key)
     

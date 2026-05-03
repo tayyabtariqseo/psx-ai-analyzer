@@ -94,6 +94,10 @@ def fetch_live_data(symbol):
 def fetch_company_info(symbol):
     return get_company_info(symbol)
 
+@st.cache_data(ttl=600) # Cache AI analysis for 10 minutes to save quota
+def get_ai_analysis(symbol, timeframe, ai_data_string):
+    return analyze_with_ai(symbol, timeframe, ai_data_string)
+
 if st.sidebar.button("Analyze Stock"):
     with st.spinner(f"Accessing Live Exchange Data for {symbol}..."):
         full_name = fetch_company_info(symbol)
@@ -149,28 +153,49 @@ if st.sidebar.button("Analyze Stock"):
                 row_heights=[0.5, 0.1, 0.2, 0.2]
             )
 
+            # Row 1: Price
             fig.add_trace(go.Candlestick(
                 x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'],
                 name="Price", increasing_line_color=candle_up, decreasing_line_color=candle_down
             ), row=1, col=1)
 
+            # EMAs
             ema_map = {'EMA_9': '#1e88e5', 'EMA_25': '#ffb300', 'EMA_44': '#8e24aa', 'EMA_100': '#fb8c00', 'EMA_200': '#f44336'}
             for ema_col, color in ema_map.items():
                 fig.add_trace(go.Scatter(x=df.index, y=df[ema_col], mode='lines', name=ema_col.replace('_', ' '), line=dict(width=1.2, color=color)), row=1, col=1)
 
-            fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name="Volume", marker_color='#607d8b'), row=2, col=1)
-            fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name="RSI", line=dict(color='#3f51b5', width=2)), row=3, col=1)
-            fig.add_trace(go.Scatter(x=df.index, y=df['MACD_12_26_9'], name="MACD", line=dict(color='#2196f3')), row=4, col=1)
+            if 'SUPERT_20_2' in df.columns:
+                fig.add_trace(go.Scatter(x=df.index, y=df['SUPERT_20_2'], mode='lines', name='SuperTrend', line=dict(dash='dash', color='#4caf50', width=1.5)), row=1, col=1)
 
-            fig.update_layout(height=1000, template=chart_template, xaxis_rangeslider_visible=False, margin=dict(l=10, r=10, t=60, b=10))
+            # Row 2: Volume
+            fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name="Volume", marker_color='#607d8b'), row=2, col=1)
+
+            # Row 3: RSI
+            fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name="RSI", line=dict(color='#3f51b5', width=2)), row=3, col=1)
+            fig.add_hline(y=70, line_dash="dash", line_color="#f44336", row=3, col=1)
+            fig.add_hline(y=30, line_dash="dash", line_color="#4caf50", row=3, col=1)
+
+            # Row 4: MACD
+            fig.add_trace(go.Scatter(x=df.index, y=df['MACD_12_26_9'], name="MACD", line=dict(color='#2196f3')), row=4, col=1)
+            fig.add_trace(go.Scatter(x=df.index, y=df['MACDs_12_26_9'], name="Signal", line=dict(color='#ff9800')), row=4, col=1)
+            fig.add_trace(go.Bar(x=df.index, y=df['MACDh_12_26_9'], name="Histogram", marker_color='#9e9e9e'), row=4, col=1)
+
+            fig.update_layout(
+                height=1100, template=chart_template, xaxis_rangeslider_visible=False,
+                margin=dict(l=10, r=10, t=60, b=10),
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            fig.update_xaxes(gridcolor=grid_color, zeroline=False)
+            fig.update_yaxes(gridcolor=grid_color, zeroline=False)
             st.plotly_chart(fig, use_container_width=True)
 
             # 5. MTT VIEW (AI REPORT)
             st.divider()
             st.subheader("🤖 MTT Technical View")
+            
             ai_data_string = f"Co: {full_name}, P: {current_price}, RSI: {latest_hist['RSI']}, MACD: {latest_hist['MACD_12_26_9']}, EMAs: 9:{latest_hist['EMA_9']}, 100:{latest_hist['EMA_100']}, 200:{latest_hist['EMA_200']}"
-            report = analyze_with_ai(symbol, timeframe, ai_data_string)
-            st.markdown(f"<div style='background-color:{card_bg}; color:{card_text}; padding:25px; border-radius:12px; border: 1px solid rgba(128,128,128,0.2); font-size: 1.1rem;'>{report}</div>", unsafe_allow_html=True)
+            report = get_ai_analysis(symbol, timeframe, ai_data_string)
+            st.markdown(f"<div style='background-color:{card_bg}; color:{card_text}; padding:25px; border-radius:12px; border: 1px solid rgba(128,128,128,0.2); font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>{report}</div>", unsafe_allow_html=True)
 
             # 6. BOTTOM TABLES
             st.divider()
