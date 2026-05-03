@@ -64,14 +64,16 @@ if theme_choice == "Dark":
     chart_template = "plotly_dark"
     grid_color = "#2d2d2d"
     text_color = "#E0E0E0"
-    card_bg = "rgba(128, 128, 128, 0.1)"
+    card_bg = "#1e1e1e"
+    card_text = "#ffffff"
     candle_up = "#26a69a"
     candle_down = "#ef5350"
 else:
     chart_template = "plotly_white"
     grid_color = "#f0f0f0"
     text_color = "#121212"
-    card_bg = "rgba(240, 242, 246, 1.0)"
+    card_bg = "#f9f9f9"
+    card_text = "#121212"
     candle_up = "#00c853"
     candle_down = "#ff5252"
 
@@ -87,6 +89,7 @@ def fetch_historical_data(symbol, start_date):
 
 @st.cache_data(ttl=60)
 def fetch_live_data(symbol):
+    # This specifically targets the DPS real-time JSON feed
     return get_live_price(symbol)
 
 @st.cache_data(ttl=86400)
@@ -107,7 +110,10 @@ if st.sidebar.button("Analyze Stock"):
             st.markdown(f"<h1 style='margin:0; font-size: 2.2rem;'>{full_name}</h1>", unsafe_allow_html=True)
             st.markdown(f"<p style='color:gray; font-size: 1.1rem; margin-top:-5px;'>{symbol} | Pakistan Stock Exchange</p>", unsafe_allow_html=True)
 
+        # 1. LIVE DATA IS THE SOURCE OF TRUTH FOR PRICE
         live_data = fetch_live_data(symbol)
+        
+        # 2. Historical Data for Indicators
         start_date = datetime.datetime.now() - datetime.timedelta(days=365)
         df = fetch_historical_data(symbol, start_date)
         
@@ -121,9 +127,11 @@ if st.sidebar.button("Analyze Stock"):
                     df.loc[mask, col] = df.loc[mask, col] / 5
 
             df = calculate_indicators(df)
-            latest_data = df.iloc[-1]
+            latest_hist = df.iloc[-1]
             pivots = calculate_pivots(df, lookback=2)
-            current_price = live_data['price'] if live_data else latest_data['Close']
+            
+            # CRITICAL: Always use Live Price for the Metrics display to ensure accuracy (e.g. PSO 357.70)
+            current_price = live_data['price'] if live_data else latest_hist['Close']
             
             if live_data:
                 st.success(f"🟢 **Live Market Price:** {current_price:.2f} | **Updated:** {live_data['timestamp'].strftime('%H:%M:%S')}")
@@ -131,9 +139,9 @@ if st.sidebar.button("Analyze Stock"):
             # Metrics
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("Current Price", f"{current_price:.2f}")
-            m2.metric("RSI (14)", f"{latest_data['RSI']:.2f}")
-            m3.metric("MACD", f"{latest_data['MACD_12_26_9']:.2f}")
-            m4.metric("ADX (14)", f"{latest_data['ADX_14']:.2f}")
+            m2.metric("RSI (14)", f"{latest_hist['RSI']:.2f}")
+            m3.metric("MACD", f"{latest_hist['MACD_12_26_9']:.2f}")
+            m4.metric("ADX (14)", f"{latest_hist['ADX_14']:.2f}")
 
             # Advanced Charting
             from plotly.subplots import make_subplots
@@ -185,9 +193,9 @@ if st.sidebar.button("Analyze Stock"):
             st.divider()
             st.subheader("🤖 MTT Technical View")
             
-            ai_data_string = f"Co: {full_name}, P: {current_price}, RSI: {latest_data['RSI']}, MACD: {latest_data['MACD_12_26_9']}, EMAs: 9:{latest_data['EMA_9']}, 100:{latest_data['EMA_100']}, 200:{latest_data['EMA_200']}"
+            ai_data_string = f"Co: {full_name}, P: {current_price}, RSI: {latest_hist['RSI']}, MACD: {latest_hist['MACD_12_26_9']}, EMAs: 9:{latest_hist['EMA_9']}, 100:{latest_hist['EMA_100']}, 200:{latest_hist['EMA_200']}"
             report = analyze_with_ai(symbol, timeframe, ai_data_string)
-            st.markdown(f"<div style='background-color:{bg_color}; color:{text_color}; padding:20px; border-radius:10px; border: 1px solid rgba(128,128,128,0.2);'>{report}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='background-color:{card_bg}; color:{card_text}; padding:25px; border-radius:12px; border: 1px solid rgba(128,128,128,0.2); font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>{report}</div>", unsafe_allow_html=True)
 
             # Data Tables
             st.divider()
@@ -213,7 +221,7 @@ if st.sidebar.button("Analyze Stock"):
                 ind_list = ["EMA_9", "EMA_25", "EMA_44", "EMA_88", "EMA_100", "EMA_200", "RSI", "MACD_12_26_9", "ADX_14", "Chaikin"]
                 st.table(pd.DataFrame({
                     "Indicator": [i.replace('_', ' ') for i in ind_list],
-                    "Value": [f"{latest_data[i]:.2f}" if i != "Chaikin" else f"{latest_data[i]:.2e}" for i in ind_list]
+                    "Value": [f"{latest_hist[i]:.2f}" if i != "Chaikin" else f"{latest_hist[i]:.2e}" for i in ind_list]
                 }))
 else:
     st.info("👈 Enter a ticker and click Analyze to begin.")
