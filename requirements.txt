@@ -3,7 +3,7 @@ pandas>=2.0.0
 pandas-ta
 yfinance
 plotly
-google-generativeai
+google-genai
 psxdata
 requests
 python-dotenv
