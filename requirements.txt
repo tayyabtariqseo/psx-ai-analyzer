@@ -7,3 +7,4 @@ google-genai
 psxdata
 requests
 python-dotenv
+beautifulsoup4

@@ -1,16 +1,16 @@
-# PSX AI Stock Analyzer - Session State (May 3, 2026 - 15:45)
+# PSX AI Stock Analyzer - Session State (May 3, 2026 - 16:15)
 
 ## Project Status
 - **Core Implementation:** Completed.
-- **UI:** Streamlit dashboard (`app.py`) fully updated with Left-Side Pivots and Bottom Indicator Table.
+- **UI:** Streamlit dashboard fully updated with Left-Side Pivots and Bottom Indicator Table.
+- **Live Link:** https://psx-ai-mtt.streamlit.app/
 - **Technical Engine:** 11 indicators + 2 Pivot systems (Traditional/Fibonacci) implemented.
-- **Documentation:** `README.md` created for professional GitHub presence.
-- **Deployment Ready:** All files verified (`requirements.txt`, `runtime.txt`).
+- **Deployment Status:** Live on Streamlit Cloud (Python 3.12).
 
 ## Recent Activity (May 3, 2026)
-- **UI Overhaul:** Reorganized `app.py` for better readability on mobile and desktop.
-- **Documentation:** Wrote a comprehensive `README.md` including features and setup guides.
-- **Manual Verification:** Verified that indicators match split-adjusted data for SYS.
+- **SDK Fix:** Switched `google-generativeai` to `google-genai` in `requirements.txt` to match code syntax.
+- **App Renamed:** User updated the live URL to `psx-ai-mtt.streamlit.app`.
+- **UI Overhaul:** Finalized layout with Pivots on the left and comprehensive technicals at the bottom.
 
 ## Final Action for User
 As `git` is not available in this CLI environment, please run the following "Final Push" script in your local terminal to complete the deployment:
