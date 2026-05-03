@@ -95,33 +95,66 @@ if st.sidebar.button("Analyze Stock"):
                 m3.metric("MACD", f"{latest_data['MACD_12_26_9']:.2f}")
                 m4.metric("ADX (14)", f"{latest_data['ADX_14']:.2f}")
 
-                # 4b. Interactive Chart
-                st.subheader(f"Price Action & Technicals ({timeframe})")
-                fig = go.Figure()
+                # 4b. Interactive Chart (Enhanced)
+                from plotly.subplots import make_subplots
+                
+                # Create subplots: Price/EMAs, Volume, RSI, MACD
+                fig = make_subplots(
+                    rows=4, cols=1, 
+                    shared_xaxes=True, 
+                    vertical_spacing=0.03, 
+                    subplot_titles=(f"{symbol} Price Action", "Volume", "RSI (14)", "MACD (12, 26, 9)"),
+                    row_heights=[0.5, 0.1, 0.2, 0.2]
+                )
 
-                # Candlestick
+                # Candlestick (Row 1)
                 fig.add_trace(go.Candlestick(
-                    x=df.index,
-                    open=df['Open'],
-                    high=df['High'],
-                    low=df['Low'],
-                    close=df['Close'],
-                    name="Price"
-                ))
+                    x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'],
+                    name="Price", increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
+                ), row=1, col=1)
 
-                # EMAs
-                for length in [9, 25, 44, 88, 100, 200]:
-                    fig.add_trace(go.Scatter(x=df.index, y=df[f'EMA_{length}'], mode='lines', name=f'EMA {length}', line=dict(width=1)))
+                # EMAs (Row 1)
+                ema_colors = {'EMA_9': '#1e88e5', 'EMA_25': '#ffb300', 'EMA_44': '#8e24aa', 'EMA_100': '#fb8c00', 'EMA_200': '#f44336'}
+                for ema_col, color in ema_colors.items():
+                    if ema_col in df.columns:
+                        fig.add_trace(go.Scatter(x=df.index, y=df[ema_col], mode='lines', name=ema_col.replace('_', ' '), line=dict(width=1, color=color)), row=1, col=1)
 
-                # SuperTrend
-                fig.add_trace(go.Scatter(x=df.index, y=df['SUPERT_20_2'], mode='lines', name='SuperTrend', line=dict(dash='dash', color='orange')))
+                # SuperTrend (Row 1)
+                if 'SUPERT_20_2' in df.columns:
+                    fig.add_trace(go.Scatter(x=df.index, y=df['SUPERT_20_2'], mode='lines', name='SuperTrend', line=dict(dash='dash', color='#4caf50')), row=1, col=1)
 
-                fig.update_layout(height=600, template="plotly_dark", xaxis_rangeslider_visible=False, margin=dict(l=0, r=0, t=30, b=0))
+                # Volume (Row 2)
+                fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name="Volume", marker_color='#455a64'), row=2, col=1)
+
+                # RSI (Row 3)
+                fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name="RSI", line=dict(color='#7986cb', width=1.5)), row=3, col=1)
+                fig.add_hline(y=70, line_dash="dash", line_color="#ef5350", row=3, col=1)
+                fig.add_hline(y=30, line_dash="dash", line_color="#4caf50", row=3, col=1)
+
+                # MACD (Row 4)
+                fig.add_trace(go.Scatter(x=df.index, y=df['MACD_12_26_9'], name="MACD", line=dict(color='#2196f3')), row=4, col=1)
+                fig.add_trace(go.Scatter(x=df.index, y=df['MACDs_12_26_9'], name="Signal", line=dict(color='#ff9800')), row=4, col=1)
+                fig.add_trace(go.Bar(x=df.index, y=df['MACDh_12_26_9'], name="Histogram", marker_color='#bdbdbd'), row=4, col=1)
+
+                # Professional Layout Styling
+                fig.update_layout(
+                    height=900,
+                    template="plotly_dark",
+                    xaxis_rangeslider_visible=False,
+                    showlegend=True,
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                    margin=dict(l=10, r=10, t=50, b=10)
+                )
+                
+                # Update axes for a cleaner look
+                fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='#2d2d2d')
+                fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='#2d2d2d')
+
                 st.plotly_chart(fig, use_container_width=True)
 
-            # 5. AI Analyst Section
+            # 5. MTT Technical View
             st.divider()
-            st.subheader("🤖 AI Analyst Report")
+            st.subheader("🤖 MTT Technical View")
             
             # Prepare data for AI
             ai_data_string = f"""
