@@ -18,10 +18,11 @@ def get_live_price(symbol):
             data = response.json()
             data_points = data.get('data', [])
             if data_points:
-                # Last point is [timestamp, price, volume]
-                latest = data_points[-1]
+                # The PSX DPS feed is sorted Newest-to-Oldest. 
+                # data[0] is the current live price.
+                latest = data_points[0]
                 return {
-                    "price": latest[1],
+                    "price": float(latest[1]),
                     "timestamp": datetime.datetime.fromtimestamp(latest[0]),
                     "volume": latest[2]
                 }
