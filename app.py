@@ -64,12 +64,14 @@ if theme_choice == "Dark":
     chart_template = "plotly_dark"
     grid_color = "#2d2d2d"
     text_color = "#E0E0E0"
+    card_bg = "rgba(128, 128, 128, 0.1)"
     candle_up = "#26a69a"
     candle_down = "#ef5350"
 else:
     chart_template = "plotly_white"
     grid_color = "#f0f0f0"
     text_color = "#121212"
+    card_bg = "rgba(240, 242, 246, 1.0)"
     candle_up = "#00c853"
     candle_down = "#ff5252"
 
@@ -94,16 +96,16 @@ def fetch_company_info(symbol):
 st.title("📊 PSX AI Analyzer by Tayyab")
 
 if st.sidebar.button("Analyze Stock"):
-    with st.spinner(f"Processing {symbol} data..."):
+    with st.spinner(f"Fetching {symbol} details..."):
         full_name = fetch_company_info(symbol)
         
         # Header with Branding
-        h_col1, h_col2 = st.columns([1, 10])
+        h_col1, h_col2 = st.columns([1, 12])
         with h_col1:
-            st.image("https://dps.psx.com.pk/static/images/logo.png", width=70)
+            st.image("https://dps.psx.com.pk/static/images/logo.png", width=80)
         with h_col2:
-            st.markdown(f"<h2 style='margin:0;'>{full_name}</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color:gray; font-weight:500;'>Ticker: {symbol} | Exchange: PSX</p>", unsafe_allow_html=True)
+            st.markdown(f"<h1 style='margin:0; font-size: 2.2rem;'>{full_name}</h1>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:gray; font-size: 1.1rem; margin-top:-5px;'>{symbol} | Pakistan Stock Exchange</p>", unsafe_allow_html=True)
 
         live_data = fetch_live_data(symbol)
         start_date = datetime.datetime.now() - datetime.timedelta(days=365)

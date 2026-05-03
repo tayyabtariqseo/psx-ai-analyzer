@@ -110,21 +110,23 @@ def get_company_info(symbol):
     """
     Fetches the full company name from the PSX Data Portal.
     """
-    url = f"https://dps.psx.com.pk/stock/quote/{symbol}"
+    # Try the company profile page which is more reliable for the name
+    url = f"https://dps.psx.com.pk/company/{symbol}"
     headers = {'User-Agent': 'Mozilla/5.0'}
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            # We use a simple regex or string split as we don't have bs4 in requirements.txt (wait, we DO have it in error log!)
-            # But better to use the API if possible. The quote page has the name in the title.
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(response.text, 'html.parser')
+            # Look for the name in the header
             name_div = soup.find('div', {'class': 'quote__name'})
             if name_div:
                 return name_div.text.strip()
     except:
         pass
-    return symbol # Fallback to symbol
+    
+    # Fallback to Ticker
+    return symbol
 
 def calculate_indicators(df):
     """
