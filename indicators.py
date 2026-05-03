@@ -1,15 +1,110 @@
 import pandas as pd
 import pandas_ta as ta
-import yfinance as yf
+from psxdata import stocks
+import requests
+import datetime
 
-def get_psx_data(symbol, period="1y", interval="1d"):
+def get_live_price(symbol):
     """
-    Fetches data for a PSX symbol using yfinance.
-    Appends .KA to the symbol for PSX (Karachi).
+    Fetches the absolute latest price from the PSX Data Portal (DPS).
     """
-    ticker = f"{symbol}.KA"
-    df = yf.download(ticker, period=period, interval=interval)
-    return df
+    url = f"https://dps.psx.com.pk/timeseries/int/{symbol}"
+    headers = {
+        'User-Agent': 'Mozilla/5.0'
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            data_points = data.get('data', [])
+            if data_points:
+                # Last point is [timestamp, price, volume]
+                latest = data_points[-1]
+                return {
+                    "price": latest[1],
+                    "timestamp": datetime.datetime.fromtimestamp(latest[0]),
+                    "volume": latest[2]
+                }
+        return None
+    except:
+        return None
+
+def get_psx_data(symbol, start_date=None, end_date=None):
+    """
+    Fetches data for a PSX symbol using psxdata library.
+    Normalizes the format to match yfinance output (DatetimeIndex, Capitalized Columns).
+    """
+    try:
+        # psxdata returns data for the symbol
+        df = stocks(symbol)
+        if df is None or df.empty:
+            return pd.DataFrame()
+
+        # Normalize format
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.sort_values('date')
+        df = df.set_index('date')
+        
+        # Rename columns to Title Case (Open, High, Low, Close, Volume)
+        rename_map = {
+            'open': 'Open',
+            'high': 'High',
+            'low': 'Low',
+            'close': 'Close',
+            'volume': 'Volume'
+        }
+        df = df.rename(columns=rename_map)
+        
+        # Keep only the OHLCV columns
+        df = df[['Open', 'High', 'Low', 'Close', 'Volume']]
+        
+        # Filter by date range
+        if start_date:
+            df = df[df.index >= pd.to_datetime(start_date)]
+        if end_date:
+            df = df[df.index <= pd.to_datetime(end_date)]
+            
+        return df
+    except Exception as e:
+        print(f"Error fetching data with psxdata: {e}")
+        return pd.DataFrame()
+
+def calculate_pivots(df, lookback=2):
+    """
+    Calculates Traditional and Fibonacci Pivot Points.
+    Uses OHLC from 'lookback' bars ago.
+    """
+    if len(df) < lookback:
+        return None
+    
+    prev = df.iloc[-lookback]
+    h, l, c = prev['High'], prev['Low'], prev['Close']
+    range_hl = h - l
+    
+    # Traditional (Floor)
+    p = (h + l + c) / 3
+    trad = {
+        "P": p,
+        "R1": (2 * p) - l,
+        "S1": (2 * p) - h,
+        "R2": p + range_hl,
+        "S2": p - range_hl,
+        "R3": h + 2 * (p - l),
+        "S3": l - 2 * (h - p)
+    }
+    
+    # Fibonacci
+    fib = {
+        "P": p,
+        "R1": p + 0.382 * range_hl,
+        "S1": p - 0.382 * range_hl,
+        "R2": p + 0.618 * range_hl,
+        "S2": p - 0.618 * range_hl,
+        "R3": p + 1.000 * range_hl,
+        "S3": p - 1.000 * range_hl
+    }
+    
+    return {"traditional": trad, "fibonacci": fib}
 
 def calculate_indicators(df):
     """
@@ -30,9 +125,8 @@ def calculate_indicators(df):
     for length in ema_lengths:
         df[f'EMA_{length}'] = ta.ema(df['Close'], length=length)
 
-    # Chaikin Oscillator (3/10)
-    # pandas-ta uses 'close', 'low', 'high', 'volume' for Chaikin
-    df['Chaikin'] = ta.chosc(df['High'], df['Low'], df['Close'], df['Volume'], fast=3, slow=10)
+    # Chaikin Oscillator (3/10) - uses 'adosc' in pandas-ta
+    df['Chaikin'] = ta.adosc(df['High'], df['Low'], df['Close'], df['Volume'], fast=3, slow=10)
 
     # DMI (14/14) - Returns ADX, +DI, -DI
     dmi = ta.adx(df['High'], df['Low'], df['Close'], length=14)

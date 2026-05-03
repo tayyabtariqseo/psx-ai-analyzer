@@ -1,23 +1,26 @@
-# PSX AI Stock Analyzer - Session State (May 2, 2026)
+# PSX AI Stock Analyzer - Session State (May 3, 2026 - 15:45)
 
 ## Project Status
 - **Core Implementation:** Completed.
-- **UI:** Streamlit dashboard (`app.py`) built and responsive.
-- **Technical Engine:** 11 indicators implemented in `indicators.py`.
-- **AI Brain:** Gemini-pro integration finished in `ai_engine.py`.
-- **Deployment Status:** Blocked by Python version incompatibility on Streamlit Cloud (3.14 detected, 3.12 required).
+- **UI:** Streamlit dashboard (`app.py`) fully updated with Left-Side Pivots and Bottom Indicator Table.
+- **Technical Engine:** 11 indicators + 2 Pivot systems (Traditional/Fibonacci) implemented.
+- **Documentation:** `README.md` created for professional GitHub presence.
+- **Deployment Ready:** All files verified (`requirements.txt`, `runtime.txt`).
 
-## Recent Activity
-- **Updated Analysis:** `GEMINI.md` updated with the latest CMP (145.34 as of April 30) and Board Meeting details (May 2).
-- **Deployment Tweak:** `runtime.txt` simplified to `python-3.12` to force the correct environment on Streamlit Cloud.
+## Recent Activity (May 3, 2026)
+- **UI Overhaul:** Reorganized `app.py` for better readability on mobile and desktop.
+- **Documentation:** Wrote a comprehensive `README.md` including features and setup guides.
+- **Manual Verification:** Verified that indicators match split-adjusted data for SYS.
 
-## Next Steps for User
-1. **Initialize Git & Push:** Since Git is not accessible in this environment, please run the following commands in your terminal:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initialize PSX AI Stock Analyzer"
-   # Add your GitHub remote and push
-   ```
-2. **Streamlit Settings:** In the Streamlit Cloud dashboard, go to **Settings > Advanced** and ensure Python 3.12 is selected if it's still defaulting to 3.14.
-3. **API Key:** Add `GOOGLE_API_KEY` to your Streamlit Secrets.
+## Final Action for User
+As `git` is not available in this CLI environment, please run the following "Final Push" script in your local terminal to complete the deployment:
+
+```bash
+git init
+git add .
+git commit -m "Final build: Advanced UI, Pivots, and Split-Adjustment"
+# Replace with your repo link
+git remote add origin https://github.com/YOUR_USERNAME/psx-sentinel-ai.git
+git push -u origin main
+```
+Then, link this repo to **share.streamlit.io** and add your `GOOGLE_API_KEY` to the **Secrets** section.
