@@ -1,7 +1,9 @@
 streamlit
-pandas
+pandas>=2.0.0
 pandas-ta
 yfinance
 plotly
 google-generativeai
 psxdata
+requests
+python-dotenv
