@@ -8,12 +8,75 @@ import datetime
 # Page Configuration
 st.set_page_config(page_title="PSX AI Analyzer by Tayyab", layout="wide")
 
-st.title("📊 PSX AI Analyzer by Tayyab")
+# Custom CSS for Professional Typography, Spacing, and Theme-aware metrics
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .stMetric {
+        background-color: rgba(128, 128, 128, 0.08);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(128, 128, 128, 0.2);
+    }
+    
+    h1, h2, h3 {
+        font-weight: 700 !important;
+        letter-spacing: -0.02em !important;
+        line-height: 1.2 !important;
+    }
+    
+    .reportview-container .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 5rem;
+        max-width: 98%;
+    }
 
-# Sidebar - User Inputs
-st.sidebar.header("Stock Configuration")
-symbol = st.sidebar.text_input("Enter Ticker (e.g., SYS, PSO, LUCK)", value="SYS").upper()
-timeframe = st.sidebar.selectbox("Select Timeframe", options=["1D", "1W", "1M"], index=0)
+    /* Improved word spacing and readability */
+    p, li, span {
+        letter-spacing: 0.01em;
+        line-height: 1.6;
+    }
+
+    /* Mobile specific tweaks */
+    @media (max-width: 768px) {
+        .reportview-container .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .stMetric {
+            margin-bottom: 10px;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Sidebar - User Inputs & Theme
+st.sidebar.header("🎨 Theme Settings")
+theme_choice = st.sidebar.radio("Dashboard Mode", options=["Dark", "Light"], index=0)
+
+# Theme-based color palettes
+if theme_choice == "Dark":
+    chart_template = "plotly_dark"
+    grid_color = "#2d2d2d"
+    text_color = "#E0E0E0"
+    candle_up = "#26a69a"
+    candle_down = "#ef5350"
+else:
+    chart_template = "plotly_white"
+    grid_color = "#f0f0f0"
+    text_color = "#121212"
+    candle_up = "#00c853"
+    candle_down = "#ff5252"
+
+st.sidebar.divider()
+st.sidebar.header("📉 Stock Analysis")
+symbol = st.sidebar.text_input("Enter Ticker", value="SYS").upper()
+timeframe = st.sidebar.selectbox("Timeframe", options=["1D", "1W", "1M"], index=0)
 
 # Cached data fetching
 @st.cache_data(ttl=3600)
@@ -24,161 +87,131 @@ def fetch_historical_data(symbol, start_date):
 def fetch_live_data(symbol):
     return get_live_price(symbol)
 
-@st.cache_data(ttl=86400) # Cache company name for 24h
+@st.cache_data(ttl=86400)
 def fetch_company_info(symbol):
     return get_company_info(symbol)
 
+st.title("📊 PSX AI Analyzer by Tayyab")
+
 if st.sidebar.button("Analyze Stock"):
-    with st.spinner(f"Analyzing {symbol}..."):
-        # 0. Get Company Full Name
+    with st.spinner(f"Processing {symbol} data..."):
         full_name = fetch_company_info(symbol)
         
         # Header with Branding
-        h_col1, h_col2 = st.columns([1, 15])
+        h_col1, h_col2 = st.columns([1, 10])
         with h_col1:
-            st.image("https://dps.psx.com.pk/static/images/logo.png", width=60)
+            st.image("https://dps.psx.com.pk/static/images/logo.png", width=70)
         with h_col2:
-            st.subheader(f"{full_name} ({symbol})")
+            st.markdown(f"<h2 style='margin:0;'>{full_name}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:gray; font-weight:500;'>Ticker: {symbol} | Exchange: PSX</p>", unsafe_allow_html=True)
 
-        # 1. Get Live Snapshot
         live_data = fetch_live_data(symbol)
-        
-        # 2. Get Historical Data
         start_date = datetime.datetime.now() - datetime.timedelta(days=365)
         df = fetch_historical_data(symbol, start_date)
         
         if df is None or df.empty:
-            st.error(f"No data found for {symbol}. Please check the ticker name.")
+            st.error(f"No data found for {symbol}.")
         else:
-            # --- SPLIT ADJUSTMENT FOR SYS ---
             if symbol == "SYS":
                 split_date = pd.to_datetime("2025-06-02")
                 mask = df.index < split_date
                 for col in ['Open', 'High', 'Low', 'Close']:
                     df.loc[mask, col] = df.loc[mask, col] / 5
 
-            # 3. Calculate Indicators
             df = calculate_indicators(df)
             latest_data = df.iloc[-1]
             pivots = calculate_pivots(df, lookback=2)
-            
-            # Use Live Price if available and fresher than historical close
             current_price = live_data['price'] if live_data else latest_data['Close']
             
-            # Display Live Badge
             if live_data:
-                st.info(f"🟢 **Live Price:** {current_price:.2f} | **Last Updated:** {live_data['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+                st.success(f"🟢 **Live Market Price:** {current_price:.2f} | **Updated:** {live_data['timestamp'].strftime('%H:%M:%S')}")
             
-            # 4. Main Layout (Chart Maximized)
-            # 4a. Display Metrics
+            # Metrics
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("Current Price", f"{current_price:.2f}")
             m2.metric("RSI (14)", f"{latest_data['RSI']:.2f}")
             m3.metric("MACD", f"{latest_data['MACD_12_26_9']:.2f}")
             m4.metric("ADX (14)", f"{latest_data['ADX_14']:.2f}")
 
-            # 4b. Interactive Chart (Enhanced)
+            # Advanced Charting
             from plotly.subplots import make_subplots
-            
             fig = make_subplots(
                 rows=4, cols=1, 
                 shared_xaxes=True, 
                 vertical_spacing=0.03, 
-                subplot_titles=(f"Price Action ({timeframe})", "Volume", "RSI (14)", "MACD (12, 26, 9)"),
+                subplot_titles=("Price Action", "Volume", "RSI (14)", "MACD (12, 26, 9)"),
                 row_heights=[0.5, 0.1, 0.2, 0.2]
             )
 
+            # Row 1: Price
             fig.add_trace(go.Candlestick(
                 x=df.index, open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'],
-                name="Price", increasing_line_color='#26a69a', decreasing_line_color='#ef5350'
+                name="Price", increasing_line_color=candle_up, decreasing_line_color=candle_down
             ), row=1, col=1)
 
-            ema_colors = {'EMA_9': '#1e88e5', 'EMA_25': '#ffb300', 'EMA_44': '#8e24aa', 'EMA_100': '#fb8c00', 'EMA_200': '#f44336'}
-            for ema_col, color in ema_colors.items():
-                if ema_col in df.columns:
-                    fig.add_trace(go.Scatter(x=df.index, y=df[ema_col], mode='lines', name=ema_col.replace('_', ' '), line=dict(width=1, color=color)), row=1, col=1)
+            # EMAs
+            ema_map = {'EMA_9': '#1e88e5', 'EMA_25': '#ffb300', 'EMA_44': '#8e24aa', 'EMA_100': '#fb8c00', 'EMA_200': '#f44336'}
+            for ema_col, color in ema_map.items():
+                fig.add_trace(go.Scatter(x=df.index, y=df[ema_col], mode='lines', name=ema_col.replace('_', ' '), line=dict(width=1.2, color=color)), row=1, col=1)
 
             if 'SUPERT_20_2' in df.columns:
-                fig.add_trace(go.Scatter(x=df.index, y=df['SUPERT_20_2'], mode='lines', name='SuperTrend', line=dict(dash='dash', color='#4caf50')), row=1, col=1)
+                fig.add_trace(go.Scatter(x=df.index, y=df['SUPERT_20_2'], mode='lines', name='SuperTrend', line=dict(dash='dash', color='#4caf50', width=1.5)), row=1, col=1)
 
-            fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name="Volume", marker_color='#455a64'), row=2, col=1)
+            # Row 2: Volume
+            fig.add_trace(go.Bar(x=df.index, y=df['Volume'], name="Volume", marker_color='#607d8b'), row=2, col=1)
 
-            fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name="RSI", line=dict(color='#7986cb', width=1.5)), row=3, col=1)
-            fig.add_hline(y=70, line_dash="dash", line_color="#ef5350", row=3, col=1)
+            # Row 3: RSI
+            fig.add_trace(go.Scatter(x=df.index, y=df['RSI'], name="RSI", line=dict(color='#3f51b5', width=2)), row=3, col=1)
+            fig.add_hline(y=70, line_dash="dash", line_color="#f44336", row=3, col=1)
             fig.add_hline(y=30, line_dash="dash", line_color="#4caf50", row=3, col=1)
 
+            # Row 4: MACD
             fig.add_trace(go.Scatter(x=df.index, y=df['MACD_12_26_9'], name="MACD", line=dict(color='#2196f3')), row=4, col=1)
             fig.add_trace(go.Scatter(x=df.index, y=df['MACDs_12_26_9'], name="Signal", line=dict(color='#ff9800')), row=4, col=1)
-            fig.add_trace(go.Bar(x=df.index, y=df['MACDh_12_26_9'], name="Histogram", marker_color='#bdbdbd'), row=4, col=1)
+            fig.add_trace(go.Bar(x=df.index, y=df['MACDh_12_26_9'], name="Histogram", marker_color='#9e9e9e'), row=4, col=1)
 
             fig.update_layout(
-                height=1000,
-                template="plotly_dark",
-                xaxis_rangeslider_visible=False,
-                showlegend=True,
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                margin=dict(l=10, r=10, t=50, b=10)
+                height=1100, template=chart_template, xaxis_rangeslider_visible=False,
+                margin=dict(l=10, r=10, t=60, b=10),
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
             )
-            fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='#2d2d2d')
-            fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='#2d2d2d')
-
+            fig.update_xaxes(gridcolor=grid_color, zeroline=False)
+            fig.update_yaxes(gridcolor=grid_color, zeroline=False)
             st.plotly_chart(fig, use_container_width=True)
 
-            # 5. MTT Technical View
+            # MTT Section
             st.divider()
             st.subheader("🤖 MTT Technical View")
             
-            ai_data_string = f"""
-            Company: {full_name} ({symbol})
-            Price: {current_price}
-            RSI: {latest_data['RSI']}
-            MACD: {latest_data['MACD_12_26_9']}
-            EMAs: 9:{latest_data['EMA_9']}, 100:{latest_data['EMA_100']}, 200:{latest_data['EMA_200']}
-            Chaikin: {latest_data['Chaikin']}
-            DMI/ADX: {latest_data['ADX_14']}
-            SuperTrend: {latest_data['SUPERT_20_2']}
-            Pivots (Trad): P:{pivots['traditional']['P']}, R1:{pivots['traditional']['R1']}, S1:{pivots['traditional']['S1']}
-            """
-            
+            ai_data_string = f"Co: {full_name}, P: {current_price}, RSI: {latest_data['RSI']}, MACD: {latest_data['MACD_12_26_9']}, EMAs: 9:{latest_data['EMA_9']}, 100:{latest_data['EMA_100']}, 200:{latest_data['EMA_200']}"
             report = analyze_with_ai(symbol, timeframe, ai_data_string)
-            st.markdown(report)
+            st.markdown(f"<div style='background-color:{bg_color}; color:{text_color}; padding:20px; border-radius:10px; border: 1px solid rgba(128,128,128,0.2);'>{report}</div>", unsafe_allow_html=True)
 
-            # 6. Bottom Tables (Pivots & Indicators)
+            # Data Tables
             st.divider()
-            p_col1, p_col2 = st.columns(2)
+            t_col1, t_col2 = st.columns(2)
             
-            with p_col1:
+            with t_col1:
                 st.subheader("📍 Pivot Points")
                 if pivots:
-                    t_tab, f_tab = st.tabs(["Traditional", "Fibonacci"])
-                    with t_tab:
-                        trad = pivots['traditional']
+                    tab1, tab2 = st.tabs(["Traditional", "Fibonacci"])
+                    with tab1:
                         st.table(pd.DataFrame({
                             "Level": ["R3", "R2", "R1", "Pivot", "S1", "S2", "S3"],
-                            "Price": [f"{trad['R3']:.2f}", f"{trad['R2']:.2f}", f"{trad['R1']:.2f}", f"{trad['P']:.2f}", f"{trad['S1']:.2f}", f"{trad['S2']:.2f}", f"{trad['S3']:.2f}"]
+                            "Price": [f"{pivots['traditional'][k]:.2f}" for k in ["R3", "R2", "R1", "P", "S1", "S2", "S3"]]
                         }))
-                    with f_tab:
-                        fib = pivots['fibonacci']
+                    with tab2:
                         st.table(pd.DataFrame({
                             "Level": ["R3", "R2", "R1", "Pivot", "S1", "S2", "S3"],
-                            "Price": [f"{fib['R3']:.2f}", f"{fib['R2']:.2f}", f"{fib['R1']:.2f}", f"{fib['P']:.2f}", f"{fib['S1']:.2f}", f"{fib['S2']:.2f}", f"{fib['S3']:.2f}"]
+                            "Price": [f"{pivots['fibonacci'][k]:.2f}" for k in ["R3", "R2", "R1", "P", "S1", "S2", "S3"]]
                         }))
 
-            with p_col2:
-                st.subheader("📈 Indicator Summary")
-                indicator_summary = {
-                    "Indicator": ["RSI (14)", "MACD", "Chaikin", "ADX (14)", "EMA 100", "EMA 200", "SuperTrend"],
-                    "Value": [
-                        f"{latest_data['RSI']:.2f}",
-                        f"{latest_data['MACD_12_26_9']:.2f}",
-                        f"{latest_data['Chaikin']:.2e}",
-                        f"{latest_data['ADX_14']:.2f}",
-                        f"{latest_data['EMA_100']:.2f}",
-                        f"{latest_data['EMA_200']:.2f}",
-                        f"{latest_data['SUPERT_20_2']:.2f}"
-                    ]
-                }
-                st.table(pd.DataFrame(indicator_summary))
-
+            with t_col2:
+                st.subheader("📈 Full Indicator Summary")
+                ind_list = ["EMA_9", "EMA_25", "EMA_44", "EMA_88", "EMA_100", "EMA_200", "RSI", "MACD_12_26_9", "ADX_14", "Chaikin"]
+                st.table(pd.DataFrame({
+                    "Indicator": [i.replace('_', ' ') for i in ind_list],
+                    "Value": [f"{latest_data[i]:.2f}" if i != "Chaikin" else f"{latest_data[i]:.2e}" for i in ind_list]
+                }))
 else:
-    st.info("Enter a stock symbol in the sidebar and click 'Analyze Stock' to begin.")
+    st.info("👈 Enter a ticker and click Analyze to begin.")
