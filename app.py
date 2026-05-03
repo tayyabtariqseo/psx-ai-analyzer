@@ -32,7 +32,13 @@ if st.sidebar.button("Analyze Stock"):
     with st.spinner(f"Analyzing {symbol}..."):
         # 0. Get Company Full Name
         full_name = fetch_company_info(symbol)
-        st.subheader(f"🔍 {full_name}")
+        
+        # Header with Branding
+        h_col1, h_col2 = st.columns([1, 15])
+        with h_col1:
+            st.image("https://dps.psx.com.pk/static/images/logo.png", width=60)
+        with h_col2:
+            st.subheader(f"{full_name} ({symbol})")
 
         # 1. Get Live Snapshot
         live_data = fetch_live_data(symbol)
