@@ -202,7 +202,7 @@ def get_ai_analysis_v3(symbol, timeframe, ai_data_string):
 # Sidebar Buttons
 col_b1, col_b2 = st.sidebar.columns(2)
 with col_b1:
-    if st.button("Analyze Stock", use_container_width=True):
+    if st.button("Analyze Stock", width="stretch"):
         st.session_state.view_mode = "Analysis"
         with st.spinner(f"Accessing Live Exchange Data for {symbol}..."):
             market_status = is_market_open()
@@ -230,10 +230,10 @@ with col_b1:
                 st.error(f"No data found for {symbol}.")
 
 with col_b2:
-    if st.button("Calls", use_container_width=True):
+    if st.button("Calls", width="stretch"):
         st.session_state.view_mode = "Calls"
 
-if st.sidebar.button("AI Report", use_container_width=True):
+if st.sidebar.button("AI Report", width="stretch"):
     if st.session_state.analysis_data:
         st.session_state.show_report = True
         st.session_state.view_mode = "Analysis"
@@ -250,7 +250,9 @@ if st.session_state.view_mode == "Analysis" and st.session_state.analysis_data:
         st.markdown(f"<h1 style='margin:0;'>{data['full_name']}</h1>", unsafe_allow_html=True)
         st.markdown(f"<p style='color:gray !important; font-size: 1.1rem; margin-top:-5px;'>{data['symbol']} | Live from PSX Data Portal</p>", unsafe_allow_html=True)
 
-    if data['market_status']:
+    # Market Status Banner
+    market_open = data.get('market_status', False)
+    if market_open:
         st.success(f"🟢 **Official PSX Current Price:** {data['current_price']:.2f} | **Updated:** {data['live_json']['timestamp'].strftime('%H:%M:%S')}")
     else:
         st.warning(f"🟡 **Mkt is Close** | **Last Closing:** {data['current_price']:.2f}")
@@ -334,7 +336,7 @@ elif st.session_state.view_mode == "Calls":
                 if val == 'Call is again open': color = '#26a69a'
                 return f'background-color: {color}'
 
-            st.table(df_calls.style.applymap(color_status, subset=['Status']))
+            st.table(df_calls.style.map(color_status, subset=['Status']))
         else:
             st.info("No active calls found in calls.txt.")
 
