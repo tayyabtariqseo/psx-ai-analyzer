@@ -21,9 +21,14 @@ def get_live_price(symbol):
                 # The PSX DPS feed is sorted Newest-to-Oldest. 
                 # data[0] is the current live price.
                 latest = data_points[0]
+                
+                # Convert UTC timestamp to PKT (UTC+5)
+                utc_dt = datetime.datetime.fromtimestamp(latest[0], tz=datetime.timezone.utc)
+                pkt_dt = utc_dt.astimezone(datetime.timezone(datetime.timedelta(hours=5)))
+                
                 return {
                     "price": float(latest[1]),
-                    "timestamp": datetime.datetime.fromtimestamp(latest[0]),
+                    "timestamp": pkt_dt,
                     "volume": latest[2]
                 }
         return None
