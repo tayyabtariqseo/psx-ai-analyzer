@@ -5,38 +5,37 @@ Persistent tracking of technical indicators and trade data for Systems Ltd. (SYS
 ## Trade Summary
 - **Purchase Price:** 160.00
 - **Quantity:** 1000
-- **Current Market Price (CMP):** 145.34 (as of April 30, 2026)
-- **Status:** Corrective phase; price is currently below purchase price.
+- **Current Market Price (CMP):** 149.73 (as of May 6, 2026)
+- **Status:** Resuming uptrend; price has reclaimed the 9-EMA.
 
-## Technical Indicators (Daily) - Updated May 3, 2026
+## Technical Indicators (Daily) - Updated May 6, 2026
 
 | Indicator | Value | Interpretation |
 | :--- | :--- | :--- |
-| **Technical Score** | 54/100 | Neutral to Slightly Bullish (Ranging). |
-| **RSI (14)** | 47.85 | Neutral, momentum has cooled. |
-| **MACD (12, 26, 9)** | 3.07 | Bullish but decelerating. |
-| **Chaikin Money Flow**| 2.19e+05 | Positive; institutional accumulation on dips. |
-| **ADX (14)** | 15.34 | Weak Trend; price is in a ranging phase. |
+| **Technical Score** | 75/100 | Strong Bullish (Robust uptrend with healthy momentum). |
+| **RSI (14)** | 54.11 | Bullish; moving up from the 50 neutral zone. |
+| **MACD (12, 26, 9)** | 2.12 | Bullish; maintaining positive momentum. |
+| **ADX (14)** | 16.75 | Weak Trend; still in a consolidation/slow-climb phase. |
 | **Super Trend** | 141.99 | Price is above the trend line (Support). |
 
 ## Support & Resistance (Pivots)
-- **R1:** 152.78 (Recent High)
-- **Pivot (P):** 151.45
-- **S1:** 144.99 (EMA 100)
-- **S2:** 141.99 (SuperTrend)
-- **S3:** 139.34 (EMA 200 - Critical Support)
+- **R1:** 149.16 (Immediate Resistance - Reclaimed)
+- **Pivot (P):** 146.59
+- **S1:** 145.17 (EMA 100)
+- **S2:** 142.60
+- **S3:** 139.82 (EMA 200 - Critical Support)
 
 ## Exponential Moving Averages (EMA)
-The price has dropped below the short-term 9-EMA but remains above long-term EMAs:
-- **EMA 9:** 150.28 (Resistance)
-- **EMA 25:** 147.23
-- **EMA 44:** 145.09
-- **EMA 88:** 145.13
-- **EMA 100:** 144.99
-- **EMA 200:** 139.34
+The price has reclaimed the 9-EMA, showing short-term strength:
+- **EMA 9:** 149.36 (Immediate Support)
+- **EMA 25:** 147.45
+- **EMA 44:** 145.49
+- **EMA 88:** 145.33
+- **EMA 100:** 145.16
+- **EMA 200:** 139.82
 
 ## Analysis Notes
-- **Update (May 3, 2026):** Recalculated indicators after 5-for-1 split adjustment.
-- **Recent Update (May 2, 2026):** CMP dropped to 145.34 on April 30. Market was closed on May 1 (Labour Day).
-- **Board Meeting (May 2):** Approved FY2025 accounts and proposed annual dividend. Market reaction to be monitored on Monday.
-- **AI Analyst (Gemini-2.0-Flash):** "Wait/Hold. For fresh entries, wait for a confirmed bounce off the 142.00–144.00 support zone or a daily close above the 9-EMA (150.28). Risk mitigation: stop-loss below 139.34."
+- **Update (May 6, 2026):** Price rose to 149.73. RSI improved to 54.11. 9-EMA reclaimed.
+- **AI Analyst (Gemini-2.5-Flash):** "Hold / Accumulate on Dips. Strong technical setup with robust long-term uptrend and healthy momentum."
+- **Note:** Market reacted positively to the dividend proposal from the May 2 board meeting.
+- **Persistence Layer:** Daily AI reports are now cached to minimize API quota usage. Streamlit cache has been refreshed (v2) to resolve 404 model errors.

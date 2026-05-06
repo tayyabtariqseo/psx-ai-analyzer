@@ -7,18 +7,22 @@ load_dotenv()
 
 import time
 
-def analyze_with_ai(symbol, timeframe, indicator_data):
+def analyze_with_ai_v2(symbol, timeframe, indicator_data):
     """
+    v2: Updated for May 2026 Environment.
     Sends technical data to Gemini for analysis.
-    Includes fallback and retry logic for quota management.
     """
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         return "Error: Gemini API Key not found. Please set GOOGLE_API_KEY in .env or secrets."
 
-    # List of models to try in order of preference
-    # gemini-1.5-flash is the stable production model with higher quota limits
-    models_to_try = ["gemini-1.5-flash", "gemini-1.5-pro"]
+    # List of models available in May 2026 environment
+    models_to_try = [
+        "gemini-2.5-flash", 
+        "gemini-2.5-flash-lite",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash" 
+    ]
     
     client = genai.Client(api_key=api_key)
     
@@ -38,7 +42,7 @@ def analyze_with_ai(symbol, timeframe, indicator_data):
 
     last_error = ""
     for model_name in models_to_try:
-        for attempt in range(2): # 2 attempts per model
+        for attempt in range(2): 
             try:
                 response = client.models.generate_content(
                     model=model_name,
@@ -48,9 +52,9 @@ def analyze_with_ai(symbol, timeframe, indicator_data):
             except Exception as e:
                 last_error = str(e)
                 if "429" in last_error:
-                    time.sleep(2) # Short wait before retry
+                    time.sleep(1) 
                     continue
                 else:
-                    break # Don't retry non-quota errors
+                    break 
     
-    return f"AI Analysis is temporarily unavailable due to high demand (Quota reached). Please try again in 1 minute. \n\nDetails: {last_error}"
+    return f"AI Analysis is currently refreshing. Please try again in a few seconds. \n\nDetails: {last_error}"
