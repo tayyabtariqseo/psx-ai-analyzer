@@ -18,7 +18,7 @@
    git commit -m "Update May 6 analysis, fix app_v2 logic, and enable dynamic reporting"
    git push origin main
    ```
-2. **Online Verification:** After pushing, visit [psx-ai-mtt.streamlit.app](https://psx-ai-mtt.streamlit.app/) to confirm the 404 error is gone and the May 6 report is visible.
+2. **Online Verification:** After pushing, visit [psx-ai.streamlit.app](https://psx-ai.streamlit.app/) to confirm the 404 error is gone and the May 6 report is visible.
 
 ## Verification Log
 - `generate_today_report.py`: SUCCESS (New report generated for May 6).

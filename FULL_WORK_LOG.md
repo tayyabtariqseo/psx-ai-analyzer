@@ -9,7 +9,7 @@
 - **🧩 Cache Bypass:** Implemented `get_ai_analysis_v3` in `app.py` to force clean reloads.
 
 ### 2. Issues & Pending Tasks:
-- **🌐 Online Sync:** The online version ([psx-ai-mtt.streamlit.app](https://psx-ai-mtt.streamlit.app/)) still shows the old error because local changes have not been pushed to GitHub.
+- **🌐 Online Sync:** The online version ([psx-ai.streamlit.app](https://psx-ai.streamlit.app/)) still shows the old error because local changes have not been pushed to GitHub.
 - **🛠️ Solution:** User needs to `git add .`, `git commit -m "Fix model 404 and add persistence"`, and `git push` once environment issues (git path) are resolved.
 
 # PSX-AI Stock Analyzer - Full Work Log (May 3, 2026 - FINAL)
@@ -29,4 +29,4 @@
 
 ### 3. Code State:
 - **Last Commit:** `bde6dc0f` (Live Price, MACD, and Theme Sync).
-- **Deployment:** [psx-ai-mtt.streamlit.app](https://psx-ai-mtt.streamlit.app/)
+- **Deployment:** [psx-ai.streamlit.app](https://psx-ai.streamlit.app/)
