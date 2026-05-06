@@ -82,6 +82,20 @@ st.markdown(f"""
 # 2. APP HEADER
 st.title("📊 PSX AI Analyzer by Tayyab")
 
+def is_market_open():
+    """Checks if the Pakistan Stock Exchange is currently open (UTC+5)."""
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    now_pkt = now_utc.astimezone(datetime.timezone(datetime.timedelta(hours=5)))
+    weekday = now_pkt.weekday() # 0=Mon, 4=Fri, 5=Sat, 6=Sun
+    time_pkt = now_pkt.time()
+    
+    if weekday >= 5: # Weekend
+        return False
+    if weekday == 4: # Friday: 9:00 AM - 4:30 PM
+        return datetime.time(9, 0) <= time_pkt <= datetime.time(16, 30)
+    else: # Mon-Thu: 9:15 AM - 3:30 PM
+        return datetime.time(9, 15) <= time_pkt <= datetime.time(15, 30)
+
 # Sidebar - Stock Inputs
 st.sidebar.divider()
 st.sidebar.header("📉 Stock Analysis")
@@ -122,8 +136,12 @@ def get_ai_analysis_v3(symbol, timeframe, ai_data_string):
 # Sidebar Buttons
 if st.sidebar.button("Analyze Stock"):
     with st.spinner(f"Accessing Live Exchange Data for {symbol}..."):
+        market_status = is_market_open()
         full_name = fetch_company_info(symbol)
-        live_json = fetch_live_data(symbol)
+        
+        # Priority: Only fetch live data if market is open to save API/Resources
+        live_json = fetch_live_data(symbol) if market_status else None
+        
         start_date = datetime.datetime.now() - datetime.timedelta(days=365)
         df = fetch_historical_data(symbol, start_date)
         
@@ -137,6 +155,8 @@ if st.sidebar.button("Analyze Stock"):
             df = calculate_indicators(df)
             latest_hist = df.iloc[-1]
             pivots = calculate_pivots(df, lookback=2)
+            
+            # If market closed, fallback to latest historical close
             current_price = live_json['price'] if live_json else latest_hist['Close']
             
             # Store in session state
@@ -144,6 +164,7 @@ if st.sidebar.button("Analyze Stock"):
                 "symbol": symbol,
                 "full_name": full_name,
                 "live_json": live_json,
+                "market_status": market_status,
                 "df": df,
                 "latest_hist": latest_hist,
                 "pivots": pivots,
@@ -173,8 +194,11 @@ if st.session_state.analysis_data:
         st.markdown(f"<h1 style='margin:0;'>{data['full_name']}</h1>", unsafe_allow_html=True)
         st.markdown(f"<p style='color:gray !important; font-size: 1.1rem; margin-top:-5px;'>{data['symbol']} | Live from PSX Data Portal</p>", unsafe_allow_html=True)
 
-    if data['live_json']:
+    # Market Status Banner
+    if data['market_status']:
         st.success(f"🟢 **Official PSX Current Price:** {data['current_price']:.2f} | **Updated:** {data['live_json']['timestamp'].strftime('%H:%M:%S')}")
+    else:
+        st.warning(f"🟡 **Mkt is Close** | **Last Closing:** {data['current_price']:.2f}")
     
     # Metrics Row
     m1, m2, m3, m4 = st.columns(4)

@@ -34,8 +34,11 @@ The price has reclaimed the 9-EMA, showing short-term strength:
 - **EMA 100:** 145.16
 - **EMA 200:** 139.82
 
-## Analysis Notes
-- **Update (May 6, 2026):** Price rose to 149.73. RSI improved to 54.11. 9-EMA reclaimed.
-- **AI Analyst (Gemini-2.5-Flash):** "Hold / Accumulate on Dips. Strong technical setup with robust long-term uptrend and healthy momentum."
-- **Note:** Market reacted positively to the dividend proposal from the May 2 board meeting.
-- **Persistence Layer:** Daily AI reports are now cached to minimize API quota usage. Streamlit cache has been refreshed (v2) to resolve 404 model errors.
+## Market Timings (PKT - UTC+5)
+- **Monday - Thursday:** 09:15 AM - 03:30 PM
+- **Friday:** 09:00 AM - 04:30 PM
+- **Weekend:** Closed
+
+## Project Guidelines
+- **Live Data:** Only fetch live price during market hours to minimize API hits.
+- **Offline Mode:** Show "Mkt is Close" with the last closing price in yellow outside hours.
