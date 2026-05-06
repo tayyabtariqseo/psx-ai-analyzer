@@ -1,4 +1,4 @@
-# PSX AI Stock Analyzer - Session State (May 6, 2026 - 12:00)
+# PSX-AI Stock Analyzer - Session State (May 6, 2026 - 12:00)
 
 ## ✅ Summary of Work
 - **Dynamic Reporting:** Updated `generate_today_report.py` to fetch real-time indicators instead of using hardcoded values.

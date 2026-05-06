@@ -8,7 +8,7 @@ import datetime
 import re
 
 # 1. THEME & GLOBAL UI STYLING
-st.set_page_config(page_title="PSX AI Analyzer by Tayyab", layout="wide")
+st.set_page_config(page_title="PSX-AI Analyzer by Tayyab", layout="wide")
 
 # Initialize Session State
 if 'analysis_data' not in st.session_state:
@@ -168,7 +168,7 @@ def get_call_status(row):
     return "", "In Progress"
 
 # 3. APP HEADER
-st.title("📊 PSX AI Analyzer by Tayyab")
+st.title("📊 PSX-AI Analyzer by Tayyab")
 
 # Sidebar - Stock Inputs
 st.sidebar.divider()

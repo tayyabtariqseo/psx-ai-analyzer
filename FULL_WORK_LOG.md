@@ -1,4 +1,4 @@
-# PSX AI Stock Analyzer - Full Work Log (May 4, 2026 - FINAL)
+# PSX-AI Stock Analyzer - Full Work Log (May 4, 2026 - FINAL)
 
 ## Current Status: Local Environment 100% Fixed. Online Sync Pending.
 
@@ -12,7 +12,7 @@
 - **🌐 Online Sync:** The online version ([psx-ai-mtt.streamlit.app](https://psx-ai-mtt.streamlit.app/)) still shows the old error because local changes have not been pushed to GitHub.
 - **🛠️ Solution:** User needs to `git add .`, `git commit -m "Fix model 404 and add persistence"`, and `git push` once environment issues (git path) are resolved.
 
-# PSX AI Stock Analyzer - Full Work Log (May 3, 2026 - FINAL)
+# PSX-AI Stock Analyzer - Full Work Log (May 3, 2026 - FINAL)
 
 ## Current Status: 90% Quota reached. Finalizing for today.
 
