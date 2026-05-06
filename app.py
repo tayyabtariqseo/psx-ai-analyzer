@@ -336,7 +336,11 @@ elif st.session_state.view_mode == "Calls":
                 if val == 'Call is again open': color = '#26a69a'
                 return f'background-color: {color}'
 
-            st.table(df_calls.style.map(color_status, subset=['Status']))
+            # Format prices to 2 decimal places
+            price_cols = ["Buy1 (b1)", "Buy2 (b2)", "Target S (TP1)", "Target M (TP2M)", "Stop Loss (SL)", "Current Price"]
+            format_dict = {col: "{:.2f}" for col in price_cols}
+            
+            st.table(df_calls.style.format(format_dict).map(color_status, subset=['Status']))
         else:
             st.info("No active calls found in calls.txt.")
 
