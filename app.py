@@ -99,8 +99,11 @@ def is_market_open():
 
 def parse_calls_file(file_path):
     """Parses trade signals from the text file."""
-    with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except FileNotFoundError:
+        return []
     
     # Split by double newline or date markers
     blocks = re.split(r'\n(?=📅|\d{1,2}-[A-Za-z]+-\d{2})', content.strip())
@@ -112,11 +115,19 @@ def parse_calls_file(file_path):
         call = {}
         # Date
         date_match = re.search(r'(?:📅\s*)?(\d{1,2}-[A-Za-z]+-\d{2})', block)
-        call['date'] = date_match.group(1) if date_match else "N/A"
+        call['date_str'] = date_match.group(1) if date_match else "N/A"
+        try:
+            call['date'] = pd.to_datetime(call['date_str'], dayfirst=True)
+        except:
+            call['date'] = datetime.datetime.now()
         
         # Symbol
         symbol_match = re.search(r'📌\s*([A-Z]+)', block)
         call['symbol'] = symbol_match.group(1) if symbol_match else "N/A"
+
+        # Ref
+        ref_match = re.search(r'🔖\s*Ref:\s*(.*)', block)
+        call['ref'] = ref_match.group(1).strip() if ref_match else "N/A"
         
         # Buy1
         b1_match = re.search(r'Buy1:\s*([\d.]+)', block)
@@ -133,7 +144,7 @@ def parse_calls_file(file_path):
         tm_match = re.search(r'([\d.]+)\s*\(M\)', block)
         call['tp2m'] = float(tm_match.group(1)) if tm_match else 0.0
         
-        call['target_l'] = "" # Placeholder as not in data
+        call['target_l'] = "" # Placeholder
         
         # Stoploss
         sl_match = re.search(r'Stoploss:\s*([\d.]+)', block)
@@ -145,37 +156,40 @@ def parse_calls_file(file_path):
     return calls
 
 def get_call_status(row):
-    """Calculates status and hits based on current price with logic for targets and buy zones."""
+    """Calculates status and hits with smart 30-day rules and refined messaging."""
     cp = row['current_price']
     if cp == 0: return "N/A", "Unknown"
     
+    call_date = row['date']
+    days_since_call = (datetime.datetime.now() - call_date).days
+    tol = 0.05
+
     # 1. Check Targets (Highest to lowest)
+    hit_type = ""
     if row['tp2m'] > 0 and cp >= row['tp2m']:
-        return "TP2 Hit", "Call Closed"
-    if row['tp1'] > 0 and cp >= row['tp1']:
-        return "TP1 Hit", "Call Closed"
+        hit_type = "TP2 Hit"
+    elif row['tp1'] > 0 and cp >= row['tp1']:
+        hit_type = "TP1 Hit"
         
     # 2. Check Stoploss
     if row['sl'] > 0 and cp <= row['sl']:
-        return "SL Hit", "Call Closed"
-        
-    # 3. Check Buy Zones (with 5% tolerance for entry)
-    tol = 0.05
-    if abs(cp - row['buy1']) / row['buy1'] <= tol:
-        return "Near to Buy 1", "Call is again open"
-    if row['buy2'] > 0 and abs(cp - row['buy2']) / row['buy2'] <= tol:
-        return "Near to Buy 2", "Call is again open"
-        
-    return "", "In Progress"
+        hit_type = "SL Hit"
 
-# 3. APP HEADER
-st.title("📊 PSX-AI Analyzer by Tayyab")
+    if hit_type:
+        return hit_type, f"Call Closed ({datetime.date.today().strftime('%Y-%m-%d')})"
 
-# Sidebar - Stock Inputs
-st.sidebar.divider()
-st.sidebar.header("📉 Stock Analysis")
-symbol = st.sidebar.text_input("Enter Ticker (e.g. SYS, PSO, FFL)", value="SYS").upper()
-timeframe = st.sidebar.selectbox("Timeframe", options=["1D", "1W", "1M"], index=0)
+    # 3. Check Buy Zones (with 5% tolerance)
+    is_near_buy = False
+    if abs(cp - row['buy1']) / row['buy1'] <= tol or (row['buy2'] > 0 and abs(cp - row['buy2']) / row['buy2'] <= tol):
+        is_near_buy = True
+
+    if is_near_buy:
+        if days_since_call > 30:
+            return "Buy Zone", "Again near to buy levels"
+        else:
+            return "Buy Zone", "Call open"
+        
+    return "Neutral", "In Progress"
 
 # Cached fetching
 @st.cache_data(ttl=3600)
@@ -199,6 +213,15 @@ def get_ai_analysis_v3(symbol, timeframe, ai_data_string):
     if "Error" not in report and "Analysis is currently" not in report:
         save_analysis(symbol, timeframe, ai_data_string, report)
     return report
+
+# 3. APP HEADER
+st.title("📊 PSX-AI Analyzer by Tayyab")
+
+# Sidebar - Stock Inputs
+st.sidebar.divider()
+st.sidebar.header("📉 Stock Analysis")
+symbol = st.sidebar.text_input("Enter Ticker (e.g. SYS, PSO, FFL)", value="SYS").upper()
+timeframe = st.sidebar.selectbox("Timeframe", options=["1D", "1W", "1M"], index=0)
 
 # Sidebar Buttons
 col_b1, col_b2 = st.sidebar.columns(2)
@@ -311,39 +334,86 @@ if st.session_state.view_mode == "Analysis" and st.session_state.analysis_data:
         st.table(pd.DataFrame({"Indicator": [i.replace('_', ' ') for i in ind_list], "Value": [f"{latest_hist[i]:.2f}" if i != "Chaikin" else f"{latest_hist[i]:.2e}" for i in ind_list]}))
 
 elif st.session_state.view_mode == "Calls":
-    st.subheader("🎯 Active Trading Calls")
-    with st.spinner("Fetching Live Prices for Calls..."):
-        raw_calls = parse_calls_file("calls.txt")
-        processed_calls = []
-        for call in raw_calls:
-            live = fetch_live_data(call['symbol'])
-            call['current_price'] = live['price'] if live else 0.0
-            hit, status = get_call_status(call)
-            call['tp_sl_hit'] = hit
-            call['status'] = status
-            processed_calls.append(call)
-        
-        if processed_calls:
-            df_calls = pd.DataFrame(processed_calls)
-            # Reorder and Rename Columns
-            col_order = ['date', 'symbol', 'buy1', 'buy2', 'tp1', 'tp2m', 'target_l', 'sl', 'current_price', 'tp_sl_hit', 'status']
-            df_calls = df_calls[col_order]
-            df_calls.columns = ["Date", "Symbol", "Buy1 (b1)", "Buy2 (b2)", "Target S (TP1)", "Target M (TP2M)", "Target L", "Stop Loss (SL)", "Current Price", "TP/SL Hit", "Status"]
-            
-            # Styling
-            def color_status(val):
-                color = 'transparent'
-                if val == 'Call Closed': color = '#ef5350'
-                if val == 'Call is again open': color = '#26a69a'
-                return f'background-color: {color}'
+    tab_calls, tab_editor = st.tabs(["🎯 Live Calls", "📝 Edit Calls"])
+    
+    with tab_editor:
+        try:
+            with open("calls.txt", "r", encoding="utf-8") as f:
+                calls_content = f.read()
+        except FileNotFoundError:
+            calls_content = ""
+        new_content = st.text_area("Update calls.txt content", value=calls_content, height=400)
+        if st.button("Save Changes"):
+            with open("calls.txt", "w", encoding="utf-8") as f:
+                f.write(new_content)
+            st.success("calls.txt updated successfully!")
+            st.rerun()
 
-            # Format prices to 2 decimal places
-            price_cols = ["Buy1 (b1)", "Buy2 (b2)", "Target S (TP1)", "Target M (TP2M)", "Stop Loss (SL)", "Current Price"]
-            format_dict = {col: "{:.2f}" for col in price_cols}
+    with tab_calls:
+        st.subheader("🎯 Active Trading Calls")
+        with st.spinner("Fetching Live Prices for Calls..."):
+            raw_calls = parse_calls_file("calls.txt")
+            processed_calls = []
+            for call in raw_calls:
+                live = fetch_live_data(call['symbol'])
+                call['current_price'] = live['price'] if live else 0.0
+                hit, status = get_call_status(call)
+                call['tp_sl_hit'] = hit
+                call['status'] = status
+                processed_calls.append(call)
             
-            st.table(df_calls.style.format(format_dict).map(color_status, subset=['Status']))
-        else:
-            st.info("No active calls found in calls.txt.")
+            if processed_calls:
+                df_all = pd.DataFrame(processed_calls).sort_values(by="date", ascending=False)
+                df_open = df_all[~df_all['status'].str.contains("Closed")]
+                df_closed = df_all[df_all['status'].str.contains("Closed")]
+                
+                def display_call_table(df, title):
+                    if df.empty:
+                        st.info(f"No {title.lower()} calls found.")
+                        return
+                    st.markdown(f"#### {title}")
+                    col_order = ['date_str', 'symbol', 'ref', 'buy1', 'buy2', 'tp1', 'tp2m', 'sl', 'current_price', 'tp_sl_hit', 'status']
+                    df_disp = df[col_order].copy()
+                    df_disp.columns = ["Date", "Symbol", "Ref", "Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price", "TP/SL Hit", "Status"]
+                    
+                    price_cols = ["Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price"]
+                    format_dict = {col: "{:.2f}" for col in price_cols}
+                    
+                    def color_status(val):
+                        if 'Closed' in val: return 'background-color: #ef5350'
+                        if 'Call open' in val: return 'background-color: #26a69a'
+                        if 'Again near' in val: return 'background-color: #ffb300'
+                        return 'background-color: transparent'
+
+                    st.table(df_disp.style.format(format_dict).map(color_status, subset=['Status']))
+
+                display_call_table(df_open, "Open Calls")
+                st.divider()
+                display_call_table(df_closed, "Closed Calls")
+
+                # AI Analysis for Open Calls
+                if not df_open.empty:
+                    st.divider()
+                    st.subheader("🤖 AI Open Calls Analysis")
+                    if st.button("Run AI Deep Dive"):
+                        with st.spinner("AI is analyzing all open calls..."):
+                            analysis_prompts = []
+                            for _, row in df_open.iterrows():
+                                sym = row['symbol']
+                                start_date = datetime.datetime.now() - datetime.timedelta(days=60)
+                                hist = fetch_historical_data(sym, start_date)
+                                if hist is not None and not hist.empty:
+                                    hist = calculate_indicators(hist)
+                                    l = hist.iloc[-1]
+                                    data_str = f"Sym: {sym}, CP: {row['current_price']:.2f}, RSI: {l['RSI']:.2f}, MACD: {l['MACD_12_26_9']:.2f}, ADX: {l['ADX_14']:.2f}, EMAs: 9:{l['EMA_9']:.2f}, 100:{l['EMA_100']:.2f}"
+                                    analysis_prompts.append(data_str)
+                            
+                            if analysis_prompts:
+                                combined_prompt = "\n".join(analysis_prompts)
+                                ai_report = analyze_with_ai_v2("Portfolio", "1D", f"Analyze these open calls and provide a brief technical view for each:\n{combined_prompt}")
+                                st.markdown(f"<div style='background-color:{card_bg}; color:{card_text}; padding:25px; border-radius:12px; border: 1px solid rgba(128,128,128,0.2);'>{ai_report}</div>", unsafe_allow_html=True)
+            else:
+                st.info("No active calls found in calls.txt.")
 
 else:
     st.info("👈 Enter a ticker and click Analyze to begin, or view active Calls.")

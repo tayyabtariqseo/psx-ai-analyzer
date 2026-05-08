@@ -1,5 +1,6 @@
 📅 6-May-26
 📌 SUTM
+🔖 Ref: STAGS
 🛒 Buy1: 95-market (30%)
 🛒 Buy2: 85 (70%)
 🎯 Target: 108 (S) , 124 (M)
@@ -7,6 +8,7 @@
 
  6-May-26
 📌 PIOC
+🔖 Ref: STAGS
 🛒 Buy1: 218-market (40%)
 🛒 Buy2: 209.9(60%)
 🎯 Target: 228 (S) , 251 (M)
@@ -14,6 +16,7 @@
 
 📅 6-May-26
 📌 FHAM
+🔖 Ref: STAGS
 🛒 Buy1: 30-market (40%)
 🛒 Buy2: 27.7 (60%)
 🎯 Target: 32.6 (S) , 34.7 (M)
@@ -21,6 +24,7 @@
 
  6-May-26
 📌 GCIL
+🔖 Ref: STAGS
 🛒 Buy1: 28-market (40%)
 🛒 Buy2: 25 (60%)
 🎯 Target: 30.4 (S) , 32.2 (M)
@@ -28,6 +32,7 @@
 
 30-April-26
 📌 KML
+🔖 Ref: STAGS
 🛒 Buy1: 8.2-market (40%)
 🛒 Buy2: 7.5 (60%)
 🎯 Target: 8.9 (S) , 10.8 (M)
@@ -35,6 +40,7 @@
 
 5-May-26
 📌 FTMM
+🔖 Ref: STAGS
 🛒 Buy1: 13-market (40%)
 🛒 Buy2: 11.3 (60%)
 🎯 Target: 14.5 (S) , 15.8 (M)
@@ -42,6 +48,7 @@
 
 7-May-26
 📌 GDL
+🔖 Ref: STAGS
 🛒 Buy1: 21-market (30%)
 🛒 Buy2: 18.4 (70%)
 🎯 Target: 23.7 (S) , 26.9 (M)
@@ -49,6 +56,7 @@
 
 29-April-26
 📌 TBL
+🔖 Ref: STAGS
 🛒 Buy1: 9.08-market (40%)
 🛒 Buy2: 8.66 (60%)
 🎯 Target: 10.4 (S) , 11.39 (M)
@@ -56,6 +64,7 @@
 
 28-April-26
 📌 BWHL
+🔖 Ref: STAGS
 🛒 Buy1: 195-market (40%)
 🛒 Buy2: 180 (60%)
 🎯 Target: 224 (S) , 234 (M)
