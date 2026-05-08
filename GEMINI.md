@@ -5,7 +5,7 @@ Persistent tracking of technical indicators and trade data for Systems Ltd. (SYS
 ## Trade Summary
 - **Purchase Price:** 160.00
 - **Quantity:** 1000
-- **Current Market Price (CMP):** 154.55 (as of May 8, 2026)
+- **Current Market Price (CMP):** 154.00 (as of May 8, 2026)
 - **Status:** Strong Bullish momentum; price well above major EMAs.
 
 ## Technical Indicators (Daily) - Updated May 8, 2026
@@ -13,8 +13,8 @@ Persistent tracking of technical indicators and trade data for Systems Ltd. (SYS
 | Indicator | Value | Interpretation |
 | :--- | :--- | :--- |
 | **Technical Score** | 90/100 | Very Strong Bullish (Perfect EMA alignment). |
-| **RSI (14)** | 59.27 | Bullish; strong momentum with room to grow. |
-| **MACD (12, 26, 9)** | 2.81 | Bullish; accelerating positive momentum. |
+| **RSI (14)** | 58.36 | Bullish; strong momentum with room to grow. |
+| **MACD (12, 26, 9)** | 2.76 | Bullish; accelerating positive momentum. |
 | **ADX (14)** | 14.19 | Weak Trend; starting to gain strength. |
 | **Super Trend** | 144.01 | Price is well above the trend line (Support). |
 
@@ -27,12 +27,12 @@ Persistent tracking of technical indicators and trade data for Systems Ltd. (SYS
 
 ## Exponential Moving Averages (EMA)
 The price is well above all major EMAs, confirming a strong uptrend:
-- **EMA 9:** 151.93 (Immediate Support)
-- **EMA 25:** 148.85
-- **EMA 44:** 146.50
-- **EMA 88:** 145.86
-- **EMA 100:** 145.63
-- **EMA 200:** 140.46
+- **EMA 9:** 151.82 (Immediate Support)
+- **EMA 25:** 148.81
+- **EMA 44:** 146.47
+- **EMA 88:** 145.84
+- **EMA 100:** 145.62
+- **EMA 200:** 140.45
 
 ## Market Timings (PKT - UTC+5)
 - **Monday - Thursday:** 09:15 AM - 03:30 PM
