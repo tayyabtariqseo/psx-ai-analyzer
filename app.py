@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from streamlit.runtime.scriptrunner import get_script_run_context, add_script_run_context
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -219,8 +220,9 @@ def get_ai_analysis_v3(symbol, timeframe, ai_data_string):
         save_analysis(symbol, timeframe, ai_data_string, report)
     return report
 
-def process_single_call(call):
+def process_single_call(call, ctx=None):
     """Fetches live data and calculates status for a single call (for parallel use)."""
+    if ctx: add_script_run_context(ctx)
     live = fetch_live_data(call['symbol'])
     call['current_price'] = live['price'] if live else 0.0
     hit, status = get_call_status(call)
@@ -322,7 +324,7 @@ if st.session_state.view_mode == "Analysis" and st.session_state.analysis_data:
     fig.update_layout(height=1100, template=chart_template, xaxis_rangeslider_visible=False, margin=dict(l=10, r=10, t=60, b=10), legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     fig.update_xaxes(gridcolor=grid_color, zeroline=False)
     fig.update_yaxes(gridcolor=grid_color, zeroline=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     if st.session_state.show_report:
         st.divider()
@@ -372,8 +374,9 @@ elif st.session_state.view_mode == "Calls":
         if st.session_state.processed_calls is None:
             with st.spinner("Fetching Live Prices for Calls (Parallelized)..."):
                 raw_calls = parse_calls_file("calls.txt")
+                ctx = get_script_run_context()
                 with ThreadPoolExecutor(max_workers=10) as executor:
-                    processed_calls = list(executor.map(process_single_call, raw_calls))
+                    processed_calls = list(executor.map(lambda c: process_single_call(c, ctx), raw_calls))
                 st.session_state.processed_calls = processed_calls
         else:
             processed_calls = st.session_state.processed_calls
@@ -421,20 +424,27 @@ elif st.session_state.view_mode == "Calls":
                     if st.button("Run AI Deep Dive"):
                         with st.spinner("AI is analyzing all open calls (with Optimized Indicator Caching)..."):
                             analysis_prompts = []
+                            # Robust formatting helper to avoid NoneType errors
+                            def f_safe(v):
+                                if v is None or pd.isna(v): return "N/A"
+                                try: return f"{float(v):.2f}"
+                                except: return "N/A"
+
                             # Fetch historical data in parallel for AI analysis
-                            def get_ai_data_str(row):
+                            def get_ai_data_str(row, ctx_inner=None):
+                                if ctx_inner: add_script_run_context(ctx_inner)
                                 sym = row['symbol']
                                 start_date = datetime.datetime.now() - datetime.timedelta(days=60)
                                 hist = fetch_historical_data(sym, start_date)
                                 if hist is not None and not hist.empty:
-                                    # Indicators are cached by pandas_ta if possible, but let's be sure
                                     hist = calculate_indicators(hist)
                                     l = hist.iloc[-1]
-                                    return f"Sym: {sym}, CP: {row['current_price']:.2f}, RSI: {l['RSI']:.2f}, MACD: {l['MACD_12_26_9']:.2f}, ADX: {l['ADX_14']:.2f}, EMAs: 9:{l['EMA_9']:.2f}, 100:{l['EMA_100']:.2f}"
+                                    return f"Sym: {sym}, CP: {f_safe(row.get('current_price'))}, RSI: {f_safe(l.get('RSI'))}, MACD: {f_safe(l.get('MACD_12_26_9'))}, ADX: {f_safe(l.get('ADX_14'))}, EMAs: 9:{f_safe(l.get('EMA_9'))}, 100:{f_safe(l.get('EMA_100'))}"
                                 return None
 
+                            ctx_p = get_script_run_context()
                             with ThreadPoolExecutor(max_workers=5) as executor:
-                                results = list(executor.map(lambda r: get_ai_data_str(r[1]), df_open.iterrows()))
+                                results = list(executor.map(lambda r: get_ai_data_str(r[1], ctx_p), df_open.iterrows()))
                             
                             analysis_prompts = [r for r in results if r]
                             
