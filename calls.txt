@@ -39,3 +39,59 @@
 🛒 Buy2: 11.3 (60%)
 🎯 Target: 14.5 (S) , 15.8 (M)
 🛑 Stoploss: 10.8 or According to your risk appetite.
+
+7-May-26
+📌 GDL
+🛒 Buy1: 21-market (30%)
+🛒 Buy2: 18.4 (70%)
+🎯 Target: 23.7 (S) , 26.9 (M)
+🛑 Stoploss: 16.5 or According to your risk appetite.
+
+
+6-May-26
+📌 SUTM
+🛒 Buy1: 95-market (30%)
+🛒 Buy2: 85 (70%)
+🎯 Target: 108 (S) , 124 (M)
+🛑 Stoploss: 77 or According to your risk appetite.
+
+
+ 6-May-26
+📌 PIOC
+🛒 Buy1: 218-market (40%)
+🛒 Buy2: 209.9(60%)
+🎯 Target: 228 (S) , 251 (M)
+🛑 Stoploss: 195 or According to your risk appetite.
+
+
+-May-26
+📌 FHAM
+🛒 Buy1: 30-market (40%)
+🛒 Buy2: 27.7 (60%)
+🎯 Target: 32.6 (S) , 34.7 (M)
+🛑 Stoploss: 25 or According to your risk appetite.
+
+6-May-26
+📌 GCIL
+🛒 Buy1: 28-market (40%)
+🛒 Buy2: 25 (60%)
+🎯 Target: 30.4 (S) , 32.2 (M)
+🛑 Stoploss: 23 or According to your risk appetite.
+
+29-April-26
+📌 TBL
+🛒 Buy1: 9.08-market (40%)
+🛒 Buy2: 8.66 (60%)
+🎯 Target: 10.4 (S) , 11.39 (M)
+🛑 Stoploss: 7.2 or According to your risk appetite.
+
+28-April-26
+📌 BWHL
+🛒 Buy1: 195-market (40%)
+🛒 Buy2: 180 (60%)
+🎯 Target: 224 (S) , 234 (M)
+🛑 Stoploss: 169.9 or According to your risk appetite.
+
+
+
+

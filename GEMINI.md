@@ -5,34 +5,34 @@ Persistent tracking of technical indicators and trade data for Systems Ltd. (SYS
 ## Trade Summary
 - **Purchase Price:** 160.00
 - **Quantity:** 1000
-- **Current Market Price (CMP):** 149.73 (as of May 6, 2026)
-- **Status:** Resuming uptrend; price has reclaimed the 9-EMA.
+- **Current Market Price (CMP):** 154.55 (as of May 8, 2026)
+- **Status:** Strong Bullish momentum; price well above major EMAs.
 
-## Technical Indicators (Daily) - Updated May 6, 2026
+## Technical Indicators (Daily) - Updated May 8, 2026
 
 | Indicator | Value | Interpretation |
 | :--- | :--- | :--- |
-| **Technical Score** | 75/100 | Strong Bullish (Robust uptrend with healthy momentum). |
-| **RSI (14)** | 54.11 | Bullish; moving up from the 50 neutral zone. |
-| **MACD (12, 26, 9)** | 2.12 | Bullish; maintaining positive momentum. |
-| **ADX (14)** | 16.75 | Weak Trend; still in a consolidation/slow-climb phase. |
-| **Super Trend** | 141.99 | Price is above the trend line (Support). |
+| **Technical Score** | 90/100 | Very Strong Bullish (Perfect EMA alignment). |
+| **RSI (14)** | 59.27 | Bullish; strong momentum with room to grow. |
+| **MACD (12, 26, 9)** | 2.81 | Bullish; accelerating positive momentum. |
+| **ADX (14)** | 14.19 | Weak Trend; starting to gain strength. |
+| **Super Trend** | 144.01 | Price is well above the trend line (Support). |
 
 ## Support & Resistance (Pivots)
-- **R1:** 149.16 (Immediate Resistance - Reclaimed)
-- **Pivot (P):** 146.59
-- **S1:** 145.17 (EMA 100)
-- **S2:** 142.60
-- **S3:** 139.82 (EMA 200 - Critical Support)
+- **R1:** 156.61
+- **Pivot (P):** 154.80
+- **S1:** 153.61
+- **S2:** 151.80
+- **S3:** 150.61
 
 ## Exponential Moving Averages (EMA)
-The price has reclaimed the 9-EMA, showing short-term strength:
-- **EMA 9:** 149.36 (Immediate Support)
-- **EMA 25:** 147.45
-- **EMA 44:** 145.49
-- **EMA 88:** 145.33
-- **EMA 100:** 145.16
-- **EMA 200:** 139.82
+The price is well above all major EMAs, confirming a strong uptrend:
+- **EMA 9:** 151.93 (Immediate Support)
+- **EMA 25:** 148.85
+- **EMA 44:** 146.50
+- **EMA 88:** 145.86
+- **EMA 100:** 145.63
+- **EMA 200:** 140.46
 
 ## Market Timings (PKT - UTC+5)
 - **Monday - Thursday:** 09:15 AM - 03:30 PM
