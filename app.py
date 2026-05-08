@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from streamlit.runtime.scriptrunner import get_script_run_ctx, add_script_run_ctx
+from streamlit.runtime.scriptrunner import get_script_run_ctx as get_script_run_context, add_script_run_ctx as add_script_run_context
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
