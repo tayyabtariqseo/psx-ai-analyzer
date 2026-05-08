@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -17,6 +18,10 @@ if 'show_report' not in st.session_state:
     st.session_state.show_report = False
 if 'view_mode' not in st.session_state:
     st.session_state.view_mode = "Analysis" # "Analysis" or "Calls"
+if 'processed_calls' not in st.session_state:
+    st.session_state.processed_calls = None
+if 'ai_portfolio_report' not in st.session_state:
+    st.session_state.ai_portfolio_report = None
 
 # Sidebar - Theme Toggle
 st.sidebar.header("🎨 Theme Settings")
@@ -214,6 +219,15 @@ def get_ai_analysis_v3(symbol, timeframe, ai_data_string):
         save_analysis(symbol, timeframe, ai_data_string, report)
     return report
 
+def process_single_call(call):
+    """Fetches live data and calculates status for a single call (for parallel use)."""
+    live = fetch_live_data(call['symbol'])
+    call['current_price'] = live['price'] if live else 0.0
+    hit, status = get_call_status(call)
+    call['tp_sl_hit'] = hit
+    call['status'] = status
+    return call
+
 # 3. APP HEADER
 st.title("📊 PSX-AI Analyzer by Tayyab")
 
@@ -256,6 +270,7 @@ with col_b1:
 with col_b2:
     if st.button("Calls", width="stretch"):
         st.session_state.view_mode = "Calls"
+        st.session_state.processed_calls = None # Force refresh on explicit click
 
 if st.sidebar.button("AI Report", width="stretch"):
     if st.session_state.analysis_data:
@@ -346,74 +361,90 @@ elif st.session_state.view_mode == "Calls":
         if st.button("Save Changes"):
             with open("calls.txt", "w", encoding="utf-8") as f:
                 f.write(new_content)
+            st.session_state.processed_calls = None
             st.success("calls.txt updated successfully!")
             st.rerun()
 
     with tab_calls:
         st.subheader("🎯 Active Trading Calls")
-        with st.spinner("Fetching Live Prices for Calls..."):
-            raw_calls = parse_calls_file("calls.txt")
-            processed_calls = []
-            for call in raw_calls:
-                live = fetch_live_data(call['symbol'])
-                call['current_price'] = live['price'] if live else 0.0
-                hit, status = get_call_status(call)
-                call['tp_sl_hit'] = hit
-                call['status'] = status
-                processed_calls.append(call)
+        
+        # Performance optimization: Fetch all prices in parallel
+        if st.session_state.processed_calls is None:
+            with st.spinner("Fetching Live Prices for Calls (Parallelized)..."):
+                raw_calls = parse_calls_file("calls.txt")
+                with ThreadPoolExecutor(max_workers=10) as executor:
+                    processed_calls = list(executor.map(process_single_call, raw_calls))
+                st.session_state.processed_calls = processed_calls
+        else:
+            processed_calls = st.session_state.processed_calls
             
-            if processed_calls:
-                df_all = pd.DataFrame(processed_calls).sort_values(by="date", ascending=False)
-                df_open = df_all[~df_all['status'].str.contains("Closed")]
-                df_closed = df_all[df_all['status'].str.contains("Closed")]
+        if processed_calls:
+            df_all = pd.DataFrame(processed_calls).sort_values(by="date", ascending=False)
+            df_open = df_all[~df_all['status'].str.contains("Closed")]
+            df_closed = df_all[df_all['status'].str.contains("Closed")]
+            
+            def display_call_table(df, title):
+                if df.empty:
+                    st.info(f"No {title.lower()} calls found.")
+                    return
+                st.markdown(f"#### {title}")
+                col_order = ['date_str', 'symbol', 'ref', 'buy1', 'buy2', 'tp1', 'tp2m', 'sl', 'current_price', 'tp_sl_hit', 'status']
+                df_disp = df[col_order].copy()
+                df_disp.columns = ["Date", "Symbol", "Ref", "Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price", "TP/SL Hit", "Status"]
                 
-                def display_call_table(df, title):
-                    if df.empty:
-                        st.info(f"No {title.lower()} calls found.")
-                        return
-                    st.markdown(f"#### {title}")
-                    col_order = ['date_str', 'symbol', 'ref', 'buy1', 'buy2', 'tp1', 'tp2m', 'sl', 'current_price', 'tp_sl_hit', 'status']
-                    df_disp = df[col_order].copy()
-                    df_disp.columns = ["Date", "Symbol", "Ref", "Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price", "TP/SL Hit", "Status"]
-                    
-                    price_cols = ["Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price"]
-                    format_dict = {col: "{:.2f}" for col in price_cols}
-                    
-                    def color_status(val):
-                        if 'Closed' in val: return 'background-color: #ef5350'
-                        if 'Call open' in val: return 'background-color: #26a69a'
-                        if 'Again near' in val: return 'background-color: #ffb300'
-                        return 'background-color: transparent'
+                price_cols = ["Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price"]
+                format_dict = {col: "{:.2f}" for col in price_cols}
+                
+                def color_status(val):
+                    if 'Closed' in val: return 'background-color: #ef5350'
+                    if 'Call open' in val: return 'background-color: #26a69a'
+                    if 'Again near' in val: return 'background-color: #ffb300'
+                    return 'background-color: transparent'
 
-                    st.table(df_disp.style.format(format_dict).map(color_status, subset=['Status']))
+                st.table(df_disp.style.format(format_dict).map(color_status, subset=['Status']))
 
-                display_call_table(df_open, "Open Calls")
+            display_call_table(df_open, "Open Calls")
+            st.divider()
+            display_call_table(df_closed, "Closed Calls")
+
+            # AI Analysis for Open Calls
+            if not df_open.empty:
                 st.divider()
-                display_call_table(df_closed, "Closed Calls")
-
-                # AI Analysis for Open Calls
-                if not df_open.empty:
-                    st.divider()
-                    st.subheader("🤖 AI Open Calls Analysis")
+                st.subheader("🤖 AI Open Calls Analysis")
+                
+                if st.session_state.ai_portfolio_report:
+                    st.markdown(f"<div style='background-color:{card_bg}; color:{card_text}; padding:25px; border-radius:12px; border: 1px solid rgba(128,128,128,0.2);'>{st.session_state.ai_portfolio_report}</div>", unsafe_allow_html=True)
+                    if st.button("Clear AI Report"):
+                        st.session_state.ai_portfolio_report = None
+                        st.rerun()
+                else:
                     if st.button("Run AI Deep Dive"):
-                        with st.spinner("AI is analyzing all open calls..."):
+                        with st.spinner("AI is analyzing all open calls (with Optimized Indicator Caching)..."):
                             analysis_prompts = []
-                            for _, row in df_open.iterrows():
+                            # Fetch historical data in parallel for AI analysis
+                            def get_ai_data_str(row):
                                 sym = row['symbol']
                                 start_date = datetime.datetime.now() - datetime.timedelta(days=60)
                                 hist = fetch_historical_data(sym, start_date)
                                 if hist is not None and not hist.empty:
+                                    # Indicators are cached by pandas_ta if possible, but let's be sure
                                     hist = calculate_indicators(hist)
                                     l = hist.iloc[-1]
-                                    data_str = f"Sym: {sym}, CP: {row['current_price']:.2f}, RSI: {l['RSI']:.2f}, MACD: {l['MACD_12_26_9']:.2f}, ADX: {l['ADX_14']:.2f}, EMAs: 9:{l['EMA_9']:.2f}, 100:{l['EMA_100']:.2f}"
-                                    analysis_prompts.append(data_str)
+                                    return f"Sym: {sym}, CP: {row['current_price']:.2f}, RSI: {l['RSI']:.2f}, MACD: {l['MACD_12_26_9']:.2f}, ADX: {l['ADX_14']:.2f}, EMAs: 9:{l['EMA_9']:.2f}, 100:{l['EMA_100']:.2f}"
+                                return None
+
+                            with ThreadPoolExecutor(max_workers=5) as executor:
+                                results = list(executor.map(lambda r: get_ai_data_str(r[1]), df_open.iterrows()))
+                            
+                            analysis_prompts = [r for r in results if r]
                             
                             if analysis_prompts:
                                 combined_prompt = "\n".join(analysis_prompts)
                                 ai_report = analyze_with_ai_v2("Portfolio", "1D", f"Analyze these open calls and provide a brief technical view for each:\n{combined_prompt}")
-                                st.markdown(f"<div style='background-color:{card_bg}; color:{card_text}; padding:25px; border-radius:12px; border: 1px solid rgba(128,128,128,0.2);'>{ai_report}</div>", unsafe_allow_html=True)
-            else:
-                st.info("No active calls found in calls.txt.")
+                                st.session_state.ai_portfolio_report = ai_report
+                                st.rerun()
+        else:
+            st.info("No active calls found in calls.txt.")
 
 else:
     st.info("👈 Enter a ticker and click Analyze to begin, or view active Calls.")
