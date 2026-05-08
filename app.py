@@ -145,21 +145,22 @@ def parse_calls_file(file_path):
     return calls
 
 def get_call_status(row):
-    """Calculates status and hits based on current price with 5% tolerance."""
+    """Calculates status and hits based on current price with logic for targets and buy zones."""
     cp = row['current_price']
     if cp == 0: return "N/A", "Unknown"
     
-    tol = 0.05
-    
-    # Targets/SL (Call Closed)
-    if abs(cp - row['tp1']) / row['tp1'] <= tol:
-        return "TP1 Hit", "Call Closed"
-    if row['tp2m'] > 0 and abs(cp - row['tp2m']) / row['tp2m'] <= tol:
+    # 1. Check Targets (Highest to lowest)
+    if row['tp2m'] > 0 and cp >= row['tp2m']:
         return "TP2 Hit", "Call Closed"
-    if row['sl'] > 0 and abs(cp - row['sl']) / row['sl'] <= tol:
+    if row['tp1'] > 0 and cp >= row['tp1']:
+        return "TP1 Hit", "Call Closed"
+        
+    # 2. Check Stoploss
+    if row['sl'] > 0 and cp <= row['sl']:
         return "SL Hit", "Call Closed"
         
-    # Buy Zones (Call Open)
+    # 3. Check Buy Zones (with 5% tolerance for entry)
+    tol = 0.05
     if abs(cp - row['buy1']) / row['buy1'] <= tol:
         return "Near to Buy 1", "Call is again open"
     if row['buy2'] > 0 and abs(cp - row['buy2']) / row['buy2'] <= tol:
