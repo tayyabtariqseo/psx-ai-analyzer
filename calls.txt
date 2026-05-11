@@ -1,3 +1,123 @@
+📅 11-May-26
+📌 GADT
+🔖 Ref: STAGS
+🛒 Buy1: 290.00-market (40%)
+🛒 Buy2: 245.00 (60%)
+🎯 Target: 327.00 (S) , 374.00 (M)
+🛑 Stoploss: 230.00 or According to your risk appetite.
+
+📅 11-May-26
+📌 CJPL
+🔖 Ref: STAGS
+🛒 Buy1: 14.00-market (40%)
+🛒 Buy2: 12.70 (60%)
+🎯 Target: 17.70 (S) , 20.00 (M)
+🛑 Stoploss: 10.30 or According to your risk appetite.
+
+📅 11-May-26
+📌 PCAL
+🔖 Ref: STAGS
+🛒 Buy1: 158.00-market (40%)
+🛒 Buy2: 139.00 (60%)
+🎯 Target: 172.80 (S) , 186.60 (M)
+🛑 Stoploss: 132.00 or According to your risk appetite.
+
+📅 11-May-26
+📌 AVN
+🔖 Ref: SFEL
+🛒 Buy1: 38.30-market (40%)
+🛒 Buy2: 36.10 (60%)
+🎯 Target: 41.80 (S) , 43.00 (M)
+🛑 Stoploss: 35.00 or According to your risk appetite.
+
+📅 11-May-26
+📌 OCTOPUS
+🔖 Ref: SFEL
+🛒 Buy1: 34.30-market (40%)
+🛒 Buy2: 32.10 (60%)
+🎯 Target: 36.80 (S) , 39.00 (M)
+🛑 Stoploss: 31.00 or According to your risk appetite.
+
+📅 11-May-26
+📌 UBDL
+🔖 Ref: STAGS
+🛒 Buy1: 26.00-market (40%)
+🛒 Buy2: 23.00 (60%)
+🎯 Target: 30.20 (S) , 33.50 (M)
+🛑 Stoploss: 20.00 or According to your risk appetite.
+
+📅 11-May-26
+📌 KOHTM
+🔖 Ref: STAGS
+🛒 Buy1: 54.00-market (40%)
+🛒 Buy2: 46.50 (60%)
+🎯 Target: 57.30 (S) , 66.10 (M)
+🛑 Stoploss: 43.50 or According to your risk appetite.
+
+📅 11-May-26
+📌 BERG
+🔖 Ref: STAGS
+🛒 Buy1: 91.80-market (40%)
+🛒 Buy2: 81.00 (60%)
+🎯 Target: 101.20 (S) , 128.90 (M)
+🛑 Stoploss: 78.00 or According to your risk appetite.
+
+📅 11-May-26
+📌 FEM
+🔖 Ref: STAGS
+🛒 Buy1: 8.50-market (40%)
+🛒 Buy2: 7.20 (60%)
+🎯 Target: 9.60 (S) , 10.70 (M)
+🛑 Stoploss: 6.80 or According to your risk appetite.
+
+📅 11-May-26
+📌 TOWL
+🔖 Ref: STAGS
+🛒 Buy1: 127.00-market (40%)
+🛒 Buy2: 119.00 (60%)
+🎯 Target: 144.00 (S) , 158.00 (M)
+🛑 Stoploss: 112.00 or According to your risk appetite.
+
+📅 10-May-26
+📌 PSO
+🔖 Ref: BB
+🛒 Buy1: 355.00-market (40%)
+🛒 Buy2: 350.00 (60%)
+🎯 Target: 390.00 (S) , 430.00 (M)
+🛑 Stoploss: 330.00 or According to your risk appetite.
+
+📅 10-May-26
+📌 MTL
+🔖 Ref: BB
+🛒 Buy1: 558.00-market (40%)
+🛒 Buy2: 550.00 (60%)
+🎯 Target: 600.00 (S) , 750.00 (M)
+🛑 Stoploss: 520.00 or According to your risk appetite.
+
+📅 10-May-26
+📌 PTC
+🔖 Ref: BB
+🛒 Buy1: 52.00-market (40%)
+🛒 Buy2: 51.00 (60%)
+🎯 Target: 61.00 (S) , 68.00 (M)
+🛑 Stoploss: 48.00 or According to your risk appetite.
+
+📅 10-May-26
+📌 BECO
+🔖 Ref: BB
+🛒 Buy1: 5.50-market (40%)
+🛒 Buy2: 5.20 (60%)
+🎯 Target: 6.70 (S) , 7.70 (M)
+🛑 Stoploss: 4.80 or According to your risk appetite.
+
+📅 7-May-26
+📌 GDL
+🔖 Ref: STAGS
+🛒 Buy1: 21-market (30%)
+🛒 Buy2: 18.4 (70%)
+🎯 Target: 23.7 (S) , 26.9 (M)
+🛑 Stoploss: 16.5 or According to your risk appetite.
+
 📅 6-May-26
 📌 SUTM
 🔖 Ref: STAGS
@@ -6,7 +126,7 @@
 🎯 Target: 108 (S) , 124 (M)
 🛑 Stoploss: 77 or According to your risk appetite.
 
- 6-May-26
+📅 6-May-26
 📌 PIOC
 🔖 Ref: STAGS
 🛒 Buy1: 218-market (40%)
@@ -22,7 +142,7 @@
 🎯 Target: 32.6 (S) , 34.7 (M)
 🛑 Stoploss: 25 or According to your risk appetite.
 
- 6-May-26
+📅 6-May-26
 📌 GCIL
 🔖 Ref: STAGS
 🛒 Buy1: 28-market (40%)
@@ -30,7 +150,7 @@
 🎯 Target: 30.4 (S) , 32.2 (M)
 🛑 Stoploss: 23 or According to your risk appetite
 
-30-April-26
+📅 30-April-26
 📌 KML
 🔖 Ref: STAGS
 🛒 Buy1: 8.2-market (40%)
@@ -38,7 +158,7 @@
 🎯 Target: 8.9 (S) , 10.8 (M)
 🛑 Stoploss: 6.9 or According to your risk appetite.
 
-5-May-26
+📅 5-May-26
 📌 FTMM
 🔖 Ref: STAGS
 🛒 Buy1: 13-market (40%)
@@ -46,15 +166,7 @@
 🎯 Target: 14.5 (S) , 15.8 (M)
 🛑 Stoploss: 10.8 or According to your risk appetite.
 
-7-May-26
-📌 GDL
-🔖 Ref: STAGS
-🛒 Buy1: 21-market (30%)
-🛒 Buy2: 18.4 (70%)
-🎯 Target: 23.7 (S) , 26.9 (M)
-🛑 Stoploss: 16.5 or According to your risk appetite.
-
-29-April-26
+📅 29-April-26
 📌 TBL
 🔖 Ref: STAGS
 🛒 Buy1: 9.08-market (40%)
@@ -62,7 +174,7 @@
 🎯 Target: 10.4 (S) , 11.39 (M)
 🛑 Stoploss: 7.2 or According to your risk appetite.
 
-28-April-26
+📅 28-April-26
 📌 BWHL
 🔖 Ref: STAGS
 🛒 Buy1: 195-market (40%)

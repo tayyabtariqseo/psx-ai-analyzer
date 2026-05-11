@@ -8,6 +8,8 @@ from ai_engine import analyze_with_ai_v2
 from persistence import load_cached_analysis, save_analysis
 import datetime
 import re
+import os
+import json
 
 # 1. THEME & GLOBAL UI STYLING
 st.set_page_config(page_title="PSX-AI Analyzer by Tayyab", layout="wide")
@@ -161,14 +163,34 @@ def parse_calls_file(file_path):
             
     return calls
 
+def get_call_history():
+    """Loads closure dates for calls to maintain the 15-day visibility rule."""
+    if os.path.exists("call_history.json"):
+        try:
+            with open("call_history.json", "r") as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_call_history(history):
+    """Persists closure dates to a JSON file."""
+    try:
+        with open("call_history.json", "w") as f:
+            json.dump(history, f, indent=4)
+    except Exception as e:
+        print(f"Error saving call history: {e}")
+
 def get_call_status(row):
-    """Calculates status and hits with smart 30-day rules and refined messaging."""
+    """Calculates status and hits with persistent closure tracking for the 15-day rule."""
     cp = row['current_price']
     if cp == 0: return "N/A", "Unknown"
     
     call_date = row['date']
     days_since_call = (datetime.datetime.now() - call_date).days
     tol = 0.05
+    history = get_call_history()
+    call_key = f"{row['symbol']}_{row['date_str']}"
 
     # 1. Check Targets (Highest to lowest)
     hit_type = ""
@@ -176,13 +198,19 @@ def get_call_status(row):
         hit_type = "TP2 Hit"
     elif row['tp1'] > 0 and cp >= row['tp1']:
         hit_type = "TP1 Hit"
-        
-    # 2. Check Stoploss
-    if row['sl'] > 0 and cp <= row['sl']:
+    elif row['sl'] > 0 and cp <= row['sl']:
         hit_type = "SL Hit"
 
     if hit_type:
-        return hit_type, f"Call Closed ({datetime.date.today().strftime('%Y-%m-%d')})"
+        # Check if we already have a closure date for this specific call
+        if call_key in history:
+            close_date_str = history[call_key]
+        else:
+            close_date_str = datetime.date.today().strftime('%Y-%m-%d')
+            history[call_key] = close_date_str
+            save_call_history(history)
+            
+        return hit_type, f"Call Closed ({close_date_str})"
 
     # 3. Check Buy Zones (with 5% tolerance)
     is_near_buy = False
@@ -351,110 +379,181 @@ if st.session_state.view_mode == "Analysis" and st.session_state.analysis_data:
         st.table(pd.DataFrame({"Indicator": [i.replace('_', ' ') for i in ind_list], "Value": [f"{latest_hist[i]:.2f}" if i != "Chaikin" else f"{latest_hist[i]:.2e}" for i in ind_list]}))
 
 elif st.session_state.view_mode == "Calls":
+    # 1. PIN PROTECTION FOR VIEWING
+    if 'view_pin_verified' not in st.session_state:
+        st.session_state.view_pin_verified = False
+    
+    if not st.session_state.view_pin_verified:
+        st.subheader("🔒 Secure Access Required")
+        view_pin = st.text_input("Enter View PIN", type="password")
+        if st.button("Verify View PIN"):
+            if view_pin == "1234":
+                st.session_state.view_pin_verified = True
+                st.rerun()
+            else:
+                st.error("Invalid View PIN")
+        st.stop()
+
     tab_calls, tab_editor = st.tabs(["🎯 Live Calls", "📝 Edit Calls"])
     
     with tab_editor:
-        try:
-            with open("calls.txt", "r", encoding="utf-8") as f:
-                calls_content = f.read()
-        except FileNotFoundError:
-            calls_content = ""
-        new_content = st.text_area("Update calls.txt content", value=calls_content, height=400)
-        if st.button("Save Changes"):
-            with open("calls.txt", "w", encoding="utf-8") as f:
-                f.write(new_content)
-            st.session_state.processed_calls = None
-            st.success("calls.txt updated successfully!")
-            st.rerun()
+        # 2. PIN PROTECTION FOR EDITING
+        if 'edit_pin_verified' not in st.session_state:
+            st.session_state.edit_pin_verified = False
+        
+        if not st.session_state.edit_pin_verified:
+            st.subheader("🔐 Admin Access Required")
+            admin_pin = st.text_input("Enter Edit PIN", type="password")
+            if st.button("Verify Edit PIN"):
+                if admin_pin == "5678":
+                    st.session_state.edit_pin_verified = True
+                    st.rerun()
+                else:
+                    st.error("Invalid Edit PIN")
+        else:
+            try:
+                with open("calls.txt", "r", encoding="utf-8") as f:
+                    calls_content = f.read()
+            except FileNotFoundError:
+                calls_content = ""
+            new_content = st.text_area("Update calls.txt content", value=calls_content, height=400)
+            col_save, col_lock = st.columns([1, 4])
+            with col_save:
+                if st.button("Save Changes"):
+                    with open("calls.txt", "w", encoding="utf-8") as f:
+                        f.write(new_content)
+                    st.session_state.processed_calls = None
+                    st.success("calls.txt updated!")
+                    st.rerun()
+            with col_lock:
+                if st.button("Lock Editor"):
+                    st.session_state.edit_pin_verified = False
+                    st.rerun()
 
     with tab_calls:
-        st.subheader("🎯 Active Trading Calls")
-        
         # Performance optimization: Fetch all prices in parallel
         if st.session_state.processed_calls is None:
-            with st.spinner("Fetching Live Prices for Calls (Parallelized)..."):
+            with st.spinner("Fetching Live Prices and Filtering..."):
                 raw_calls = parse_calls_file("calls.txt")
                 ctx = get_script_run_context()
                 with ThreadPoolExecutor(max_workers=10) as executor:
-                    processed_calls = list(executor.map(lambda c: process_single_call(c, ctx), raw_calls))
-                st.session_state.processed_calls = processed_calls
+                    all_processed = list(executor.map(lambda c: process_single_call(c, ctx), raw_calls))
+                st.session_state.processed_calls = all_processed
         else:
-            processed_calls = st.session_state.processed_calls
+            all_processed = st.session_state.processed_calls
+
+        if all_processed:
+            current_time = datetime.datetime.now()
+            history = get_call_history()
             
-        if processed_calls:
-            df_all = pd.DataFrame(processed_calls).sort_values(by="date", ascending=False)
-            df_open = df_all[~df_all['status'].str.contains("Closed")]
-            df_closed = df_all[df_all['status'].str.contains("Closed")]
+            # --- FILTERING & LOGIC ---
+            open_calls_list = []
+            closed_calls_list = []
             
-            def display_call_table(df, title):
-                if df.empty:
-                    st.info(f"No {title.lower()} calls found.")
+            for c in all_processed:
+                is_closed = "Closed" in c['status']
+                if is_closed:
+                    # Check 15-day rule from history
+                    call_key = f"{c['symbol']}_{c['date_str']}"
+                    close_date_str = history.get(call_key)
+                    if close_date_str:
+                        close_dt = pd.to_datetime(close_date_str)
+                        days_since_close = (current_time - close_dt).days
+                        if days_since_close <= 15:
+                            closed_calls_list.append(c)
+                        else:
+                            # Move to archive? For now just don't show.
+                            pass
+                    else:
+                        # Fallback if history missing
+                        closed_calls_list.append(c)
+                else:
+                    open_calls_list.append(c)
+
+            # --- METRICS SECTION ---
+            st.subheader("📈 Fund Performance Summary")
+            m1, m2, m3, m4 = st.columns(4)
+            monthly_issued = sum(1 for c in all_processed if c['date'].month == current_time.month and c['date'].year == current_time.year)
+            m1.metric("Total Monthly Signals", monthly_issued)
+            m2.metric("Total Active Signals", len(all_processed))
+            m3.metric("Currently Open", len(open_calls_list))
+            m4.metric("Recently Closed", len(closed_calls_list))
+            
+            # --- TABLES SECTION ---
+            def render_call_table(data_list, title):
+                if not data_list:
+                    st.info(f"No {title.lower()} at this time.")
                     return
                 st.markdown(f"#### {title}")
-                col_order = ['date_str', 'symbol', 'ref', 'buy1', 'buy2', 'tp1', 'tp2m', 'sl', 'current_price', 'tp_sl_hit', 'status']
+                df = pd.DataFrame(data_list).sort_values(by="date", ascending=False)
+                df.reset_index(drop=True, inplace=True)
+                df.index += 1
+                df.insert(0, "S.No", df.index)
+                
+                col_order = ['S.No', 'date_str', 'symbol', 'ref', 'buy1', 'buy2', 'tp1', 'tp2m', 'sl', 'current_price', 'tp_sl_hit', 'status']
                 df_disp = df[col_order].copy()
-                df_disp.columns = ["Date", "Symbol", "Ref", "Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price", "TP/SL Hit", "Status"]
+                df_disp.columns = ["S.No", "Date", "Symbol", "Ref", "Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price", "TP/SL Hit", "Status"]
                 
                 price_cols = ["Buy1", "Buy2", "Target S", "Target M", "SL", "Current Price"]
                 format_dict = {col: "{:.2f}" for col in price_cols}
                 
-                def color_status(val):
-                    if 'Closed' in val: return 'background-color: #ef5350'
-                    if 'Call open' in val: return 'background-color: #26a69a'
-                    if 'Again near' in val: return 'background-color: #ffb300'
-                    return 'background-color: transparent'
+                def style_status(val):
+                    if 'Closed' in val: return 'background-color: #ef5350; color: white'
+                    if 'Call open' in val: return 'background-color: #26a69a; color: white'
+                    if 'Again' in val: return 'background-color: #ffb300; color: black'
+                    return ''
 
-                st.table(df_disp.style.format(format_dict).map(color_status, subset=['Status']))
+                st.table(df_disp.style.format(format_dict).map(style_status, subset=['Status']))
 
-            display_call_table(df_open, "Open Calls")
             st.divider()
-            display_call_table(df_closed, "Closed Calls")
+            render_call_table(open_calls_list, "🎯 Open Trading Calls")
+            st.divider()
+            render_call_table(closed_calls_list, "🏁 Recently Closed Calls")
 
-            # AI Analysis for Open Calls
-            if not df_open.empty:
+            # --- AI ANALYSIS SECTION (SECOND PIN REQUIRED) ---
+            if st.session_state.edit_pin_verified:
                 st.divider()
-                st.subheader("🤖 AI Open Calls Analysis")
-                
-                if st.session_state.ai_portfolio_report:
+                st.subheader("🤖 Fund Manager AI Deep Dive")
+                if not open_calls_list:
+                    st.info("No open calls for AI analysis.")
+                elif st.session_state.ai_portfolio_report:
                     st.markdown(f"<div style='background-color:{card_bg}; color:{card_text}; padding:25px; border-radius:12px; border: 1px solid rgba(128,128,128,0.2);'>{st.session_state.ai_portfolio_report}</div>", unsafe_allow_html=True)
-                    if st.button("Clear AI Report"):
+                    if st.button("Refresh AI Insights"):
                         st.session_state.ai_portfolio_report = None
                         st.rerun()
                 else:
-                    if st.button("Run AI Deep Dive"):
-                        with st.spinner("AI is analyzing all open calls (with Optimized Indicator Caching)..."):
-                            analysis_prompts = []
-                            # Robust formatting helper to avoid NoneType errors
-                            def f_safe(v):
-                                if v is None or pd.isna(v): return "N/A"
+                    if st.button("Execute AI Portfolio Review"):
+                        with st.spinner("Analyzing Market Structure for all Open Positions..."):
+                            def f_s(v):
                                 try: return f"{float(v):.2f}"
                                 except: return "N/A"
-
-                            # Fetch historical data in parallel for AI analysis
-                            def get_ai_data_str(row, ctx_inner=None):
-                                if ctx_inner: add_script_run_context(ctx_inner)
+                            
+                            def get_ai_data(row, ctx_in):
+                                add_script_run_context(ctx_in)
                                 sym = row['symbol']
-                                start_date = datetime.datetime.now() - datetime.timedelta(days=60)
-                                hist = fetch_historical_data(sym, start_date)
+                                hist = fetch_historical_data(sym, datetime.datetime.now() - datetime.timedelta(days=60))
                                 if hist is not None and not hist.empty:
-                                    hist = calculate_indicators(hist)
-                                    l = hist.iloc[-1]
-                                    return f"Sym: {sym}, CP: {f_safe(row.get('current_price'))}, RSI: {f_safe(l.get('RSI'))}, MACD: {f_safe(l.get('MACD_12_26_9'))}, ADX: {f_safe(l.get('ADX_14'))}, EMAs: 9:{f_safe(l.get('EMA_9'))}, 100:{f_safe(l.get('EMA_100'))}"
+                                    l = calculate_indicators(hist).iloc[-1]
+                                    return f"Sym: {sym}, Price: {f_s(row['current_price'])}, RSI: {f_s(l['RSI'])}, MACD: {f_s(l['MACD_12_26_9'])}, ADX: {f_s(l['ADX_14'])}"
                                 return None
 
                             ctx_p = get_script_run_context()
-                            with ThreadPoolExecutor(max_workers=5) as executor:
-                                results = list(executor.map(lambda r: get_ai_data_str(r[1], ctx_p), df_open.iterrows()))
+                            with ThreadPoolExecutor(max_workers=5) as ex:
+                                prompts = [p for p in list(ex.map(lambda r: get_ai_data(r, ctx_p), open_calls_list)) if p]
                             
-                            analysis_prompts = [r for r in results if r]
-                            
-                            if analysis_prompts:
-                                combined_prompt = "\n".join(analysis_prompts)
-                                ai_report = analyze_with_ai_v2("Portfolio", "1D", f"Analyze these open calls and provide a brief technical view for each:\n{combined_prompt}")
-                                st.session_state.ai_portfolio_report = ai_report
+                            if prompts:
+                                report = analyze_with_ai_v2("Portfolio", "1D", "\n".join(prompts))
+                                st.session_state.ai_portfolio_report = report
                                 st.rerun()
+            else:
+                st.info("💡 *AI Technical Deep Dive is locked. Enter Admin PIN in the 'Manage Signals' tab to unlock.*")
         else:
-            st.info("No active calls found in calls.txt.")
+            st.warning("No signal data found.")
+
+    if st.button("Terminal Logout"):
+        st.session_state.view_pin_verified = False
+        st.session_state.edit_pin_verified = False
+        st.rerun()
 
 else:
     st.info("👈 Enter a ticker and click Analyze to begin, or view active Calls.")
