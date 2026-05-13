@@ -42,3 +42,4 @@ The price is hovering around EMA 9, maintaining a sustained uptrend:
 ## Project Guidelines
 - **Live Data:** Only fetch live price during market hours to minimize API hits.
 - **Offline Mode:** Show "Mkt is Close" with the last closing price in yellow outside hours.
+- **UI Preservation:** NEVER remove or modify existing UI features, sections, or logic (e.g., Performance Summary, Closed Calls Table, Status Colors) unless explicitly instructed. Always ask for confirmation before making architectural or feature changes outside the scope of a directive.

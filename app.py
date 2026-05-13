@@ -286,6 +286,20 @@ elif st.session_state.view_mode == "Calls":
         open_c = [c for c in all_c if "Closed" not in c['status']]
         closed_c = [c for c in all_c if "Closed" in c['status']]
 
+        # --- METRICS SECTION ---
+        st.subheader("📈 Fund Performance Summary")
+        if not st.session_state.data_is_live:
+            st.info("⚡ *Showing cached prices. Updating live in background...*")
+        
+        m1, m2, m3, m4 = st.columns(4)
+        now = datetime.datetime.now()
+        monthly_issued = sum(1 for c in all_c if c['date'].month == now.month and c['date'].year == now.year)
+        m1.metric("Total Monthly Signals", monthly_issued)
+        m2.metric("Total Active Signals", len(all_c))
+        m3.metric("Currently Open", len(open_c))
+        m4.metric("Recently Closed", len(closed_c))
+        st.divider()
+
         def render_table(data_list, title):
             if not data_list:
                 st.info(f"No {title.lower()} at this time.")
