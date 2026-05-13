@@ -24,9 +24,9 @@ else:
 
 # 2. Verify AI Engine Configuration
 print("\n[2/3] Checking AI Engine Configuration...")
-from ai_engine import analyze_with_ai
+from ai_engine import analyze_with_ai_v2
 import inspect
-source = inspect.getsource(analyze_with_ai)
+source = inspect.getsource(analyze_with_ai_v2)
 if "gemini-2.5-flash" in source:
     print("✅ AI Engine is correctly targeting Gemini 2.5 models.")
 else:
@@ -42,11 +42,11 @@ else:
 print("\n[3/3] Performing Functional Test...")
 # If we have a cache, it should return it immediately
 # If not, it will try the API
-from app import get_ai_analysis_v2
+from app import get_ai_analysis_v3
 timeframe = "1D"
 ai_data_string = "Test Data"
 print(f"Requesting analysis for {symbol}...")
-report = get_ai_analysis_v2(symbol, timeframe, ai_data_string)
+report = get_ai_analysis_v3(symbol, timeframe, ai_data_string)
 
 if "## Technical Analysis" in report:
     print("✅ SUCCESS: Received valid technical report.")
