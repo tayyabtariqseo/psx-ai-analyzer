@@ -5,6 +5,7 @@
 ### 1. Major Successes (Verified):
 - **📅 Wednesday Analysis:** Successfully ran technical analysis during market hours (May 13).
 - **🤖 AI Report Refresh:** Generated a fresh AI report for SYS. Technical score moved to **82/100** (Strongly Bullish).
+- **📋 Calls Tab Restoration:** Restored the "All Closed Calls" table and enforced **2-decimal precision** for all price columns.
 - **⚡ Cache Optimization:** Verified that `analysis/SYS_2026-05-13.json` is correctly cached.
 - **📊 Documentation Sync:** Updated `GEMINI.md` and `SESSION_STATE.md` with latest CMP (152.62) and indicator values.
 
