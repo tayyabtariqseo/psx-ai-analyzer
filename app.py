@@ -286,10 +286,35 @@ elif st.session_state.view_mode == "Calls":
         open_c = [c for c in all_c if "Closed" not in c['status']]
         closed_c = [c for c in all_c if "Closed" in c['status']]
 
-        st.subheader("🎯 Open Trading Calls")
-        if open_c:
-            df = pd.DataFrame(open_c)[['date_str', 'symbol', 'ref', 'buy1', 'buy2', 'tp1', 'tp2m', 'sl', 'current_price', 'status']]
-            st.table(df.style.map(lambda x: 'background-color: #26a69a' if 'open' in str(x).lower() else 'background-color: #ffb300' if 'zone' in str(x).lower() else '', subset=['status']))
+        def render_table(data_list, title):
+            if not data_list:
+                st.info(f"No {title.lower()} at this time.")
+                return
+            st.subheader(title)
+            df = pd.DataFrame(data_list)
+            # Formatting
+            cols = ['date_str', 'symbol', 'ref', 'buy1', 'buy2', 'tp1', 'tp2m', 'sl', 'current_price', 'status']
+            df_disp = df[cols].copy()
+            df_disp.columns = ["Date", "Symbol", "Ref", "Buy1", "Buy2", "Target S", "Target M", "SL", "CMP", "Status"]
+            
+            # 2 Decimal Formatting
+            price_cols = ["Buy1", "Buy2", "Target S", "Target M", "SL", "CMP"]
+            format_dict = {col: "{:.2f}" for col in price_cols}
+            
+            def style_status(val):
+                v = str(val).lower()
+                if 'closed' in v: return 'background-color: #ef5350; color: white'
+                if 'call open' in v: return 'background-color: #26a69a; color: white'
+                if 'zone' in v: return 'background-color: #ffb300; color: black'
+                if 'towards tp1' in v: return 'background-color: #ffff00; color: black'
+                if 'almost' in v: return 'background-color: #00ff00; color: black'
+                return ''
+
+            st.table(df_disp.style.format(format_dict).map(style_status, subset=['Status']))
+
+        render_table(open_c, "🎯 Open Trading Calls")
+        st.divider()
+        render_table(closed_c, "🏁 All Closed Calls")
         
         if not st.session_state.data_is_live:
             with st.spinner("Refreshing prices..."):
